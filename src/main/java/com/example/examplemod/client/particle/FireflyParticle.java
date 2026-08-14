@@ -11,23 +11,34 @@ import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.Mth;
 
 public final class FireflyParticle extends TextureSheetParticle {
-    private static final int MIN_LIFETIME = 160;
-    private static final int EXTRA_LIFETIME = 121;
-    private static final int FADE_IN_TICKS = 10;
-    private static final int FADE_OUT_TICKS = 20;
-    private static final double STEERING_FACTOR = 0.08;
+    private static final int MIN_LIFETIME = 240;
+    private static final int EXTRA_LIFETIME = 361;
+    private static final int MIN_FADE_IN_TICKS = 20;
+    private static final int EXTRA_FADE_IN_TICKS = 31;
+    private static final int MIN_FADE_OUT_TICKS = 40;
+    private static final int EXTRA_FADE_OUT_TICKS = 41;
+    private static final double STEERING_FACTOR = 0.045;
 
     private final SpriteSet sprites;
     private final double originX;
     private final double originY;
     private final double originZ;
+    private final int fadeInTicks;
+    private final int fadeOutTicks;
+    private final float maximumAlpha;
     private final float blinkSpeed;
+    private final float blinkPhase;
+    private final double motionFrequencyX;
+    private final double motionFrequencyY;
+    private final double motionFrequencyZ;
+    private final double motionPhaseX;
+    private final double motionPhaseY;
+    private final double motionPhaseZ;
 
     private double targetVelocityX;
     private double targetVelocityY;
     private double targetVelocityZ;
     private int steeringTicks;
-    private float blinkPhase;
 
     private FireflyParticle(
             ClientLevel level,
@@ -45,13 +56,22 @@ public final class FireflyParticle extends TextureSheetParticle {
         this.originY = y;
         this.originZ = z;
         this.lifetime = MIN_LIFETIME + this.random.nextInt(EXTRA_LIFETIME);
-        this.quadSize = 0.06F + this.random.nextFloat() * 0.035F;
+        this.fadeInTicks = MIN_FADE_IN_TICKS + this.random.nextInt(EXTRA_FADE_IN_TICKS);
+        this.fadeOutTicks = MIN_FADE_OUT_TICKS + this.random.nextInt(EXTRA_FADE_OUT_TICKS);
+        this.quadSize = 0.026F + this.random.nextFloat() * 0.018F;
+        this.maximumAlpha = 0.82F + this.random.nextFloat() * 0.18F;
         this.blinkPhase = this.random.nextFloat() * Mth.TWO_PI;
-        this.blinkSpeed = 0.16F + this.random.nextFloat() * 0.12F;
+        this.blinkSpeed = 0.045F + this.random.nextFloat() * 0.025F;
+        this.motionFrequencyX = randomBetween(0.025, 0.055);
+        this.motionFrequencyY = randomBetween(0.020, 0.045);
+        this.motionFrequencyZ = randomBetween(0.030, 0.060);
+        this.motionPhaseX = this.random.nextDouble() * Mth.TWO_PI;
+        this.motionPhaseY = this.random.nextDouble() * Mth.TWO_PI;
+        this.motionPhaseZ = this.random.nextDouble() * Mth.TWO_PI;
         this.steeringTicks = 0;
         this.gravity = 0.0F;
-        this.friction = 0.96F;
-        this.hasPhysics = true;
+        this.friction = 0.985F;
+        this.hasPhysics = false;
         this.alpha = 0.0F;
 
         float warmth = this.random.nextFloat();
@@ -73,15 +93,21 @@ public final class FireflyParticle extends TextureSheetParticle {
         updateGlow();
         updateSteering();
 
-        this.xd += (this.targetVelocityX - this.xd) * STEERING_FACTOR;
-        this.yd += (this.targetVelocityY - this.yd) * STEERING_FACTOR;
-        this.zd += (this.targetVelocityZ - this.zd) * STEERING_FACTOR;
-        this.move(this.xd, this.yd, this.zd);
+        double motionTime = this.age;
+        double desiredVelocityX = this.targetVelocityX
+                + Math.sin(motionTime * this.motionFrequencyX + this.motionPhaseX) * 0.004
+                + Math.sin(motionTime * this.motionFrequencyY * 0.53 + this.motionPhaseZ) * 0.002;
+        double desiredVelocityY = this.targetVelocityY
+                + Math.sin(motionTime * this.motionFrequencyY + this.motionPhaseY) * 0.003
+                + Math.cos(motionTime * this.motionFrequencyX * 0.61 + this.motionPhaseX) * 0.0015;
+        double desiredVelocityZ = this.targetVelocityZ
+                + Math.cos(motionTime * this.motionFrequencyZ + this.motionPhaseZ) * 0.004
+                + Math.sin(motionTime * this.motionFrequencyX * 0.47 + this.motionPhaseY) * 0.002;
 
-        if (this.onGround) {
-            this.yd = Math.max(this.yd, 0.008);
-            this.steeringTicks = 0;
-        }
+        this.xd += (desiredVelocityX - this.xd) * STEERING_FACTOR;
+        this.yd += (desiredVelocityY - this.yd) * STEERING_FACTOR;
+        this.zd += (desiredVelocityZ - this.zd) * STEERING_FACTOR;
+        this.move(this.xd, this.yd, this.zd);
 
         this.xd *= this.friction;
         this.yd *= this.friction;
@@ -90,12 +116,11 @@ public final class FireflyParticle extends TextureSheetParticle {
     }
 
     private void updateGlow() {
-        this.blinkPhase += this.blinkSpeed;
-        float wave = (Mth.sin(this.blinkPhase) + 1.0F) * 0.5F;
-        float pulse = 0.18F + 0.82F * wave * wave;
-        float fadeIn = Mth.clamp((float)this.age / FADE_IN_TICKS, 0.0F, 1.0F);
-        float fadeOut = Mth.clamp((float)(this.lifetime - this.age) / FADE_OUT_TICKS, 0.0F, 1.0F);
-        this.alpha = pulse * Math.min(fadeIn, fadeOut);
+        float wave = (Mth.sin(this.blinkPhase + this.age * this.blinkSpeed) + 1.0F) * 0.5F;
+        float pulse = 0.24F + 0.76F * smoothStep(wave);
+        float fadeIn = smoothStep(Mth.clamp((float) this.age / this.fadeInTicks, 0.0F, 1.0F));
+        float fadeOut = smoothStep(Mth.clamp((float) (this.lifetime - this.age) / this.fadeOutTicks, 0.0F, 1.0F));
+        this.alpha = this.maximumAlpha * pulse * fadeIn * fadeOut;
     }
 
     private void updateSteering() {
@@ -103,13 +128,17 @@ public final class FireflyParticle extends TextureSheetParticle {
             return;
         }
 
-        double returnX = Mth.clamp((this.originX - this.x) * 0.004, -0.012, 0.012);
-        double returnY = Mth.clamp((this.originY - this.y) * 0.006, -0.008, 0.008);
-        double returnZ = Mth.clamp((this.originZ - this.z) * 0.004, -0.012, 0.012);
-        this.targetVelocityX = randomBetween(-0.010, 0.010) + returnX;
-        this.targetVelocityY = randomBetween(-0.004, 0.008) + returnY;
-        this.targetVelocityZ = randomBetween(-0.010, 0.010) + returnZ;
-        this.steeringTicks = 12 + this.random.nextInt(29);
+        double returnX = Mth.clamp((this.originX - this.x) * 0.0025, -0.008, 0.008);
+        double returnY = Mth.clamp((this.originY - this.y) * 0.0035, -0.006, 0.006);
+        double returnZ = Mth.clamp((this.originZ - this.z) * 0.0025, -0.008, 0.008);
+        this.targetVelocityX = randomBetween(-0.012, 0.012) + returnX;
+        this.targetVelocityY = randomBetween(-0.006, 0.006) + returnY;
+        this.targetVelocityZ = randomBetween(-0.012, 0.012) + returnZ;
+        this.steeringTicks = 35 + this.random.nextInt(66);
+    }
+
+    private static float smoothStep(float value) {
+        return value * value * (3.0F - 2.0F * value);
     }
 
     private double randomBetween(double minimum, double maximum) {

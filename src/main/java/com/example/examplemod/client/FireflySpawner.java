@@ -17,12 +17,12 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 public final class FireflySpawner {
     private static final int NIGHT_START = 13_000;
     private static final int NIGHT_END = 23_000;
-    private static final int ATTEMPT_INTERVAL_TICKS = 2;
-    private static final float SPAWN_CHANCE_PER_ATTEMPT = 0.35F;
-    private static final double MIN_DISTANCE = 3.0;
-    private static final double MAX_DISTANCE = 12.0;
-    private static final double MIN_HEIGHT_OFFSET = 0.35;
-    private static final double EXTRA_HEIGHT_OFFSET = 2.15;
+    private static final int ATTEMPT_INTERVAL_TICKS = 4;
+    private static final float SPAWN_CHANCE_PER_ATTEMPT = 0.25F;
+    private static final double MIN_DISTANCE = 5.0;
+    private static final double MAX_DISTANCE = 56.0;
+    private static final double MIN_HEIGHT_OFFSET = 0.25;
+    private static final double EXTRA_HEIGHT_OFFSET = 4.5;
 
     private static int ticksUntilAttempt;
 
