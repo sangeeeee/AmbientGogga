@@ -18,6 +18,7 @@ public final class FireflyParticle extends TextureSheetParticle {
     private static final int MIN_FADE_OUT_TICKS = 40;
     private static final int EXTRA_FADE_OUT_TICKS = 41;
     private static final double STEERING_FACTOR = 0.045;
+    private static final double MAX_ROAM_DISTANCE = 12.0;
 
     private final SpriteSet sprites;
     private final double originX;
@@ -58,7 +59,7 @@ public final class FireflyParticle extends TextureSheetParticle {
         this.lifetime = MIN_LIFETIME + this.random.nextInt(EXTRA_LIFETIME);
         this.fadeInTicks = MIN_FADE_IN_TICKS + this.random.nextInt(EXTRA_FADE_IN_TICKS);
         this.fadeOutTicks = MIN_FADE_OUT_TICKS + this.random.nextInt(EXTRA_FADE_OUT_TICKS);
-        this.quadSize = 0.026F + this.random.nextFloat() * 0.018F;
+        this.quadSize = 0.018F + this.random.nextFloat() * 0.042F;
         this.maximumAlpha = 0.82F + this.random.nextFloat() * 0.18F;
         this.blinkPhase = this.random.nextFloat() * Mth.TWO_PI;
         this.blinkSpeed = 0.045F + this.random.nextFloat() * 0.025F;
@@ -95,14 +96,14 @@ public final class FireflyParticle extends TextureSheetParticle {
 
         double motionTime = this.age;
         double desiredVelocityX = this.targetVelocityX
-                + Math.sin(motionTime * this.motionFrequencyX + this.motionPhaseX) * 0.004
-                + Math.sin(motionTime * this.motionFrequencyY * 0.53 + this.motionPhaseZ) * 0.002;
+                + Math.sin(motionTime * this.motionFrequencyX + this.motionPhaseX) * 0.006
+                + Math.sin(motionTime * this.motionFrequencyY * 0.53 + this.motionPhaseZ) * 0.003;
         double desiredVelocityY = this.targetVelocityY
-                + Math.sin(motionTime * this.motionFrequencyY + this.motionPhaseY) * 0.003
-                + Math.cos(motionTime * this.motionFrequencyX * 0.61 + this.motionPhaseX) * 0.0015;
+                + Math.sin(motionTime * this.motionFrequencyY + this.motionPhaseY) * 0.004
+                + Math.cos(motionTime * this.motionFrequencyX * 0.61 + this.motionPhaseX) * 0.002;
         double desiredVelocityZ = this.targetVelocityZ
-                + Math.cos(motionTime * this.motionFrequencyZ + this.motionPhaseZ) * 0.004
-                + Math.sin(motionTime * this.motionFrequencyX * 0.47 + this.motionPhaseY) * 0.002;
+                + Math.cos(motionTime * this.motionFrequencyZ + this.motionPhaseZ) * 0.006
+                + Math.sin(motionTime * this.motionFrequencyX * 0.47 + this.motionPhaseY) * 0.003;
 
         this.xd += (desiredVelocityX - this.xd) * STEERING_FACTOR;
         this.yd += (desiredVelocityY - this.yd) * STEERING_FACTOR;
@@ -128,13 +129,26 @@ public final class FireflyParticle extends TextureSheetParticle {
             return;
         }
 
-        double returnX = Mth.clamp((this.originX - this.x) * 0.0025, -0.008, 0.008);
-        double returnY = Mth.clamp((this.originY - this.y) * 0.0035, -0.006, 0.006);
-        double returnZ = Mth.clamp((this.originZ - this.z) * 0.0025, -0.008, 0.008);
-        this.targetVelocityX = randomBetween(-0.012, 0.012) + returnX;
-        this.targetVelocityY = randomBetween(-0.006, 0.006) + returnY;
-        this.targetVelocityZ = randomBetween(-0.012, 0.012) + returnZ;
-        this.steeringTicks = 35 + this.random.nextInt(66);
+        double offsetX = this.x - this.originX;
+        double offsetY = this.y - this.originY;
+        double offsetZ = this.z - this.originZ;
+        double distanceSquared = offsetX * offsetX + offsetY * offsetY + offsetZ * offsetZ;
+        if (distanceSquared > MAX_ROAM_DISTANCE * MAX_ROAM_DISTANCE) {
+            double inverseDistance = 1.0 / Math.sqrt(distanceSquared);
+            this.targetVelocityX = -offsetX * inverseDistance * 0.020;
+            this.targetVelocityY = -offsetY * inverseDistance * 0.014;
+            this.targetVelocityZ = -offsetZ * inverseDistance * 0.020;
+            this.steeringTicks = 30;
+            return;
+        }
+
+        double returnX = Mth.clamp((this.originX - this.x) * 0.0015, -0.006, 0.006);
+        double returnY = Mth.clamp((this.originY - this.y) * 0.0020, -0.005, 0.005);
+        double returnZ = Mth.clamp((this.originZ - this.z) * 0.0015, -0.006, 0.006);
+        this.targetVelocityX = randomBetween(-0.018, 0.018) + returnX;
+        this.targetVelocityY = randomBetween(-0.010, 0.010) + returnY;
+        this.targetVelocityZ = randomBetween(-0.018, 0.018) + returnZ;
+        this.steeringTicks = 45 + this.random.nextInt(76);
     }
 
     private static float smoothStep(float value) {
