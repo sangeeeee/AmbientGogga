@@ -2,20 +2,14 @@ package com.sange.ambientgogga.entity;
 
 import com.sange.ambientgogga.AmbientGogga;
 import com.sange.ambientgogga.entity.ai.ShichieichouWanderGoal;
-import com.sange.ambientgogga.item.ButterflyBottleItem;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import org.jetbrains.annotations.Nullable;
@@ -69,7 +63,7 @@ public final class Shichieichou extends Butterfly {
             this.restrictTo(this.blockPosition(), 32);
             this.restrictionInitialized = true;
         }
-        if (--this.remainingLifetimeTicks <= 0) {
+        if (!this.wasReleasedFromBottle() && --this.remainingLifetimeTicks <= 0) {
             this.discard();
         }
     }
@@ -85,16 +79,6 @@ public final class Shichieichou extends Butterfly {
         super.readAdditionalSaveData(tag);
         int storedLifetime = tag.getInt(REMAINING_LIFETIME_TAG);
         this.remainingLifetimeTicks = storedLifetime > 0 ? storedLifetime : this.randomLifetime();
-    }
-
-    @Override
-    protected InteractionResult mobInteract(Player player, InteractionHand hand) {
-        ItemStack heldStack = player.getItemInHand(hand);
-        if (heldStack.is(Items.GLASS_BOTTLE)
-                || heldStack.getItem() instanceof ButterflyBottleItem) {
-            return InteractionResult.PASS;
-        }
-        return super.mobInteract(player, hand);
     }
 
     @Override

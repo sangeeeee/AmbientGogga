@@ -4,6 +4,7 @@ import com.sange.ambientgogga.AmbientGogga;
 import com.sange.ambientgogga.entity.Butterfly;
 import com.sange.ambientgogga.entity.ButterflyVariant;
 import com.sange.ambientgogga.entity.ModEntities;
+import com.sange.ambientgogga.entity.Shichieichou;
 import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -34,8 +35,11 @@ import net.minecraft.world.phys.Vec3;
 public final class ButterflyBottleItem extends Item {
     public static final int MAX_BUTTERFLIES = 3;
     private static final String BUTTERFLIES_TAG = "Butterflies";
+    private static final String ENTITY_TYPE_TAG = "EntityType";
     private static final String VARIANT_TAG = "Variant";
     private static final String SIZE_TAG = "SizeModifier";
+    private static final String BUTTERFLY_ENTITY_TYPE = "ambientgogga:butterfly";
+    private static final String SHICHIEICHOU_ENTITY_TYPE = "ambientgogga:shichieichou";
 
     public ButterflyBottleItem(Properties properties) {
         super(properties);
@@ -66,6 +70,12 @@ public final class ButterflyBottleItem extends Item {
         }
 
         CompoundTag capturedButterfly = new CompoundTag();
+        capturedButterfly.putString(
+                ENTITY_TYPE_TAG,
+                butterfly instanceof Shichieichou
+                        ? SHICHIEICHOU_ENTITY_TYPE
+                        : BUTTERFLY_ENTITY_TYPE
+        );
         capturedButterfly.putString(VARIANT_TAG, butterfly.getVariant().serializedName());
         capturedButterfly.putFloat(SIZE_TAG, butterfly.getSizeModifier());
         CustomData.update(DataComponents.CUSTOM_DATA, stack, root -> {
@@ -84,8 +94,7 @@ public final class ButterflyBottleItem extends Item {
             LivingEntity target,
             InteractionHand hand
     ) {
-        if (!(target instanceof Butterfly butterfly)
-                || butterfly.getType() != ModEntities.BUTTERFLY.get()) {
+        if (!(target instanceof Butterfly butterfly)) {
             return InteractionResult.PASS;
         }
 
@@ -159,8 +168,15 @@ public final class ButterflyBottleItem extends Item {
                 MAX_BUTTERFLIES
         ).withStyle(ChatFormatting.GRAY));
         for (int index = 0; index < displayedCount; index++) {
+            CompoundTag data = butterflies.getCompound(index);
+            if (isShichieichou(data)) {
+                tooltip.add(Component.literal(" • ")
+                        .append(Component.translatable("entity.ambientgogga.shichieichou"))
+                        .withStyle(ChatFormatting.DARK_GRAY));
+                continue;
+            }
             ButterflyVariant variant = ButterflyVariant.byName(
-                    butterflies.getCompound(index).getString(VARIANT_TAG)
+                    data.getString(VARIANT_TAG)
             );
             tooltip.add(Component.literal(" • ")
                     .append(Component.translatable("entity.ambientgogga.butterfly." + variant.serializedName()))
@@ -194,7 +210,10 @@ public final class ButterflyBottleItem extends Item {
         int released = 0;
         for (int index = 0; index < butterflyCount; index++) {
             CompoundTag data = butterflies.getCompound(index);
-            Butterfly butterfly = ModEntities.BUTTERFLY.get().create(serverLevel);
+            boolean shichieichou = isShichieichou(data);
+            Butterfly butterfly = shichieichou
+                    ? ModEntities.SHICHIEICHOU.get().create(serverLevel)
+                    : ModEntities.BUTTERFLY.get().create(serverLevel);
             if (butterfly == null) {
                 continue;
             }
@@ -202,11 +221,15 @@ public final class ButterflyBottleItem extends Item {
             double angle = index * (Math.PI * 2.0D / Math.max(1, butterflyCount));
             double offset = butterflyCount > 1 ? 0.18D : 0.0D;
             Vec3 butterflyPosition = position.add(Math.cos(angle) * offset, index * 0.08D, Math.sin(angle) * offset);
-            butterfly.setVariant(ButterflyVariant.byName(data.getString(VARIANT_TAG)));
+            if (!shichieichou) {
+                butterfly.setVariant(ButterflyVariant.byName(data.getString(VARIANT_TAG)));
+            }
             float sizeModifier = data.getFloat(SIZE_TAG);
             butterfly.setSizeModifier(sizeModifier > 0.0F
                     ? sizeModifier
-                    : butterfly.getVariant().randomSize(serverLevel.getRandom()));
+                    : shichieichou
+                            ? 0.9F
+                            : butterfly.getVariant().randomSize(serverLevel.getRandom()));
             butterfly.setTired(false);
             butterfly.setLanded(false);
             butterfly.setAtHideout(false);
@@ -247,6 +270,10 @@ public final class ButterflyBottleItem extends Item {
         return data == null
                 ? new ListTag()
                 : data.copyTag().getList(BUTTERFLIES_TAG, Tag.TAG_COMPOUND);
+    }
+
+    private static boolean isShichieichou(CompoundTag data) {
+        return SHICHIEICHOU_ENTITY_TYPE.equals(data.getString(ENTITY_TYPE_TAG));
     }
 
     private static void updateModel(ItemStack stack, int count) {
