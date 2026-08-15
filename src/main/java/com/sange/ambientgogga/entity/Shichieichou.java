@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 /** A rare nocturnal butterfly that never lands and briefly visits the overworld. */
 public final class Shichieichou extends Butterfly {
+    private static final byte NATURAL_DESPAWN_EVENT = 61;
     private static final String REMAINING_LIFETIME_TAG = "RemainingLifetime";
     private static final int MIN_LIFETIME_TICKS = 60 * 20;
     private static final int MAX_LIFETIME_TICKS = 180 * 20;
@@ -28,6 +29,8 @@ public final class Shichieichou extends Butterfly {
 
     private int remainingLifetimeTicks;
     private boolean restrictionInitialized;
+    private boolean naturalDespawnFadeRequested;
+    private float clientFadeProgress;
 
     public Shichieichou(EntityType<? extends Shichieichou> entityType, Level level) {
         super(entityType, level);
@@ -67,8 +70,18 @@ public final class Shichieichou extends Butterfly {
             this.restrictionInitialized = true;
         }
         if (!this.wasReleasedFromBottle() && --this.remainingLifetimeTicks <= 0) {
+            this.level().broadcastEntityEvent(this, NATURAL_DESPAWN_EVENT);
             this.discard();
         }
+    }
+
+    @Override
+    public void handleEntityEvent(byte id) {
+        if (id == NATURAL_DESPAWN_EVENT) {
+            this.naturalDespawnFadeRequested = true;
+            return;
+        }
+        super.handleEntityEvent(id);
     }
 
     @Override
@@ -92,6 +105,24 @@ public final class Shichieichou extends Butterfly {
     @Override
     public float getWingRotation(float ageInTicks) {
         return Math.abs(Mth.sin(ageInTicks / 6.4F));
+    }
+
+    public boolean shouldPlayNaturalDespawnFade() {
+        return this.naturalDespawnFadeRequested;
+    }
+
+    public void setClientFadeProgress(float progress) {
+        this.clientFadeProgress = Mth.clamp(progress, 0.0F, 1.0F);
+    }
+
+    public boolean isClientFadeGhost() {
+        return this.clientFadeProgress > 0.0F;
+    }
+
+    public float getClientFadeAlpha() {
+        float progress = this.clientFadeProgress;
+        float smoothProgress = progress * progress * (3.0F - 2.0F * progress);
+        return 1.0F - smoothProgress;
     }
 
     @Override

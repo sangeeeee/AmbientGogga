@@ -1,5 +1,7 @@
 package com.sange.ambientgogga.client.model;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.sange.ambientgogga.AmbientGogga;
 import com.sange.ambientgogga.entity.Butterfly;
 import com.sange.ambientgogga.entity.Shichieichou;
@@ -14,6 +16,7 @@ import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 
 public final class ButterflyModel extends HierarchicalModel<Butterfly> {
@@ -35,6 +38,7 @@ public final class ButterflyModel extends HierarchicalModel<Butterfly> {
     private final ModelPart group;
     private final ModelPart leftWing;
     private final ModelPart rightWing;
+    private float renderAlpha = 1.0F;
 
     public ButterflyModel(ModelPart root) {
         this.root = root;
@@ -58,6 +62,9 @@ public final class ButterflyModel extends HierarchicalModel<Butterfly> {
             float netHeadYaw,
             float headPitch
     ) {
+        this.renderAlpha = butterfly instanceof Shichieichou shichieichou
+                ? shichieichou.getClientFadeAlpha()
+                : 1.0F;
         this.group.xRot = butterfly.isResting() ? 0.0F : -0.2618F;
         float minimumWingAngle = butterfly instanceof Shichieichou
                 ? SHICHIEICHOU_MIN_WING_ANGLE
@@ -74,6 +81,28 @@ public final class ButterflyModel extends HierarchicalModel<Butterfly> {
         );
         this.leftWing.zRot = wingAngle;
         this.rightWing.zRot = -wingAngle;
+    }
+
+    @Override
+    public void renderToBuffer(
+            PoseStack poseStack,
+            VertexConsumer buffer,
+            int packedLight,
+            int packedOverlay,
+            int color
+    ) {
+        int alpha = Mth.clamp(
+                Math.round(FastColor.ARGB32.alpha(color) * this.renderAlpha),
+                0,
+                255
+        );
+        super.renderToBuffer(
+                poseStack,
+                buffer,
+                packedLight,
+                packedOverlay,
+                FastColor.ARGB32.color(alpha, color)
+        );
     }
 
     public static LayerDefinition createBodyLayer() {

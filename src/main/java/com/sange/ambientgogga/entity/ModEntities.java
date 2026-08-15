@@ -26,7 +26,7 @@ public final class ModEntities {
     public static final DeferredHolder<EntityType<?>, EntityType<Shichieichou>> SHICHIEICHOU =
             ENTITY_TYPES.register("shichieichou", () -> EntityType.Builder
                     .of(Shichieichou::new, MobCategory.MISC)
-                    .sized(0.5F, 0.5F)
+                    .sized(0.375F, 0.375F)
                     .clientTrackingRange(8)
                     .build(AmbientGogga.MODID + ":shichieichou"));
 
