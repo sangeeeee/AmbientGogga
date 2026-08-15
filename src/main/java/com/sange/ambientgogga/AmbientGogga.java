@@ -12,6 +12,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import com.sange.ambientgogga.particle.ModParticles;
 import com.sange.ambientgogga.entity.ModEntities;
 import com.sange.ambientgogga.item.ButterflyBottleItem;
+import com.sange.ambientgogga.world.ShichieichouSpawner;
 
 @Mod(AmbientGogga.MODID)
 public class AmbientGogga {
@@ -32,6 +33,7 @@ public class AmbientGogga {
         ITEMS.register(modEventBus);
         ModParticles.register(modEventBus);
         ModEntities.register(modEventBus);
+        ShichieichouSpawner.register();
         modEventBus.addListener(this::addCreative);
     }
 

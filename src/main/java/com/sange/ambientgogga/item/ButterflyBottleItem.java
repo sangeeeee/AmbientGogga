@@ -84,7 +84,8 @@ public final class ButterflyBottleItem extends Item {
             LivingEntity target,
             InteractionHand hand
     ) {
-        if (!(target instanceof Butterfly butterfly)) {
+        if (!(target instanceof Butterfly butterfly)
+                || butterfly.getType() != ModEntities.BUTTERFLY.get()) {
             return InteractionResult.PASS;
         }
 

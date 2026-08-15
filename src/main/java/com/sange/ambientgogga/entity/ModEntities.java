@@ -23,6 +23,13 @@ public final class ModEntities {
                     .clientTrackingRange(5)
                     .build(AmbientGogga.MODID + ":butterfly"));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<Shichieichou>> SHICHIEICHOU =
+            ENTITY_TYPES.register("shichieichou", () -> EntityType.Builder
+                    .of(Shichieichou::new, MobCategory.MISC)
+                    .sized(0.5F, 0.5F)
+                    .clientTrackingRange(8)
+                    .build(AmbientGogga.MODID + ":shichieichou"));
+
     private ModEntities() {
     }
 
@@ -34,6 +41,7 @@ public final class ModEntities {
 
     private static void registerAttributes(EntityAttributeCreationEvent event) {
         event.put(BUTTERFLY.get(), Butterfly.createAttributes().build());
+        event.put(SHICHIEICHOU.get(), Butterfly.createAttributes().build());
     }
 
     private static void registerSpawnPlacements(RegisterSpawnPlacementsEvent event) {

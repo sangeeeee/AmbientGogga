@@ -25,6 +25,7 @@ public class AmbientGoggaClient {
 
     private static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ModEntities.BUTTERFLY.get(), ButterflyRenderer::new);
+        event.registerEntityRenderer(ModEntities.SHICHIEICHOU.get(), ButterflyRenderer::new);
     }
 
     private static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {

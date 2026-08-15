@@ -2,7 +2,9 @@ package com.sange.ambientgogga.client.renderer;
 
 import com.sange.ambientgogga.client.model.ButterflyModel;
 import com.sange.ambientgogga.entity.Butterfly;
+import com.sange.ambientgogga.entity.Shichieichou;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.resources.ResourceLocation;
@@ -16,6 +18,19 @@ public final class ButterflyRenderer extends MobRenderer<Butterfly, ButterflyMod
     @Override
     public ResourceLocation getTextureLocation(Butterfly butterfly) {
         return butterfly.getTexture();
+    }
+
+    @Override
+    protected RenderType getRenderType(
+            Butterfly butterfly,
+            boolean bodyVisible,
+            boolean translucent,
+            boolean glowing
+    ) {
+        if (butterfly instanceof Shichieichou && bodyVisible) {
+            return RenderType.entityTranslucent(this.getTextureLocation(butterfly));
+        }
+        return super.getRenderType(butterfly, bodyVisible, translucent, glowing);
     }
 
     @Override

@@ -53,7 +53,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.Tags;
 import org.jetbrains.annotations.Nullable;
 
-public final class Butterfly extends PathfinderMob implements FlyingAnimal {
+public class Butterfly extends PathfinderMob implements FlyingAnimal {
     private static final String RELEASED_FROM_BOTTLE_TAG = "ReleasedFromBottle";
     private static final EntityDataAccessor<Integer> VARIANT =
             SynchedEntityData.defineId(Butterfly.class, EntityDataSerializers.INT);
