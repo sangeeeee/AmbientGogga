@@ -24,6 +24,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 import com.example.examplemod.particle.ModParticles;
 import com.example.examplemod.entity.ModEntities;
+import com.example.examplemod.item.ButterflyBottleItem;
 
 // The value here should match an entry in the META-INF/neoforge.mods.toml file
 @Mod(ExampleMod.MODID)
@@ -34,6 +35,11 @@ public class ExampleMod {
     public static final Logger LOGGER = LogUtils.getLogger();
     // Create a Deferred Register to hold Items which will all be registered under the "examplemod" namespace
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
+
+    public static final DeferredItem<ButterflyBottleItem> BUTTERFLY_BOTTLE = ITEMS.register(
+            "butterfly_bottle",
+            () -> new ButterflyBottleItem(new Item.Properties().stacksTo(1))
+    );
 
     public static final DeferredItem<SpawnEggItem> BUTTERFLY_SPAWN_EGG = ITEMS.register(
             "butterfly_spawn_egg",

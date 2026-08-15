@@ -5,6 +5,7 @@ import com.example.examplemod.entity.ai.ButterflyAvoidPlayerGoal;
 import com.example.examplemod.entity.ai.ButterflyHideGoal;
 import com.example.examplemod.entity.ai.ButterflyRestGoal;
 import com.example.examplemod.entity.ai.ButterflyWanderGoal;
+import com.example.examplemod.item.ButterflyBottleItem;
 import com.example.examplemod.world.ModTags;
 import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
@@ -14,9 +15,13 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -34,6 +39,8 @@ import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.animal.FlyingAnimal;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -232,6 +239,43 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
             this.setNotLanded();
         }
         return damaged;
+    }
+
+    @Override
+    protected InteractionResult mobInteract(Player player, InteractionHand hand) {
+        ItemStack heldStack = player.getItemInHand(hand);
+        if (!heldStack.is(Items.GLASS_BOTTLE)) {
+            return super.mobInteract(player, hand);
+        }
+
+        if (this.level().isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
+
+        ItemStack capturedBottle = ButterflyBottleItem.createWith(this);
+        if (!player.getAbilities().instabuild && heldStack.getCount() == 1) {
+            player.setItemInHand(hand, capturedBottle);
+        } else {
+            if (!player.getAbilities().instabuild) {
+                heldStack.shrink(1);
+            }
+            if (!player.getInventory().add(capturedBottle)) {
+                player.drop(capturedBottle, false);
+            }
+        }
+
+        this.level().playSound(
+                null,
+                this.getX(),
+                this.getY(),
+                this.getZ(),
+                SoundEvents.BOTTLE_FILL,
+                SoundSource.NEUTRAL,
+                1.0F,
+                1.1F
+        );
+        this.discard();
+        return InteractionResult.SUCCESS;
     }
 
     @Override

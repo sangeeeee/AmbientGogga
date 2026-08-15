@@ -1,5 +1,8 @@
 {
   "item.examplemod.butterfly_spawn_egg": "Butterfly Spawn Egg",
+  "item.examplemod.butterfly_bottle": "Butterfly Bottle",
+  "item.examplemod.butterfly_bottle.count": "Butterflies: %s/%s",
+  "item.examplemod.butterfly_bottle.release": "Sneak and use to release all",
   "entity.examplemod.butterfly": "Butterfly",
   "entity.examplemod.butterfly.peacock": "Peacock",
   "entity.examplemod.butterfly.brimstone": "Brimstone",
