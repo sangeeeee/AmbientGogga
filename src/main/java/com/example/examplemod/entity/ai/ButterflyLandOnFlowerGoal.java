@@ -15,7 +15,11 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
+    private static final float DAYTIME_FLOWER_INTEREST = 0.35F;
+
     private final Butterfly butterfly;
+    private boolean mandatorySearchActive;
+    private boolean voluntaryVisit;
 
     public ButterflyLandOnFlowerGoal(Butterfly butterfly, double speed, int searchRadius) {
         super(butterfly, speed, searchRadius);
@@ -24,21 +28,47 @@ public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
 
     @Override
     public boolean canUse() {
-        return !this.butterfly.isLanded()
-                && (this.butterfly.isTired() || this.butterfly.level().isNight())
-                && super.canUse();
+        if (this.butterfly.isLanded()) {
+            return false;
+        }
+
+        boolean mandatorySearch = this.butterfly.isTired() || this.butterfly.level().isNight();
+        if (mandatorySearch) {
+            if (!this.mandatorySearchActive) {
+                this.nextStartTick = 0;
+            }
+            this.mandatorySearchActive = true;
+            this.voluntaryVisit = false;
+            return super.canUse();
+        }
+
+        this.mandatorySearchActive = false;
+        this.voluntaryVisit = false;
+        if (this.nextStartTick > 0) {
+            this.nextStartTick--;
+            return false;
+        }
+
+        this.nextStartTick = this.nextStartTick(this.butterfly);
+        if (this.butterfly.getRandom().nextFloat() >= DAYTIME_FLOWER_INTEREST) {
+            return false;
+        }
+
+        this.voluntaryVisit = this.findNearestBlock();
+        return this.voluntaryVisit;
     }
 
     @Override
     public boolean canContinueToUse() {
         return !this.butterfly.isLanded()
-                && (this.butterfly.isTired() || this.butterfly.level().isNight())
+                && (this.butterfly.isTired() || this.butterfly.level().isNight() || this.voluntaryVisit)
                 && super.canContinueToUse();
     }
 
     @Override
     public void stop() {
         this.butterfly.getNavigation().stop();
+        this.voluntaryVisit = false;
     }
 
     @Override
@@ -92,6 +122,9 @@ public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
         }
 
         this.butterfly.setLanded(true);
+        if (this.voluntaryVisit) {
+            this.butterfly.setTired(true);
+        }
         this.butterfly.setPos(x, y, z);
         this.butterfly.setDeltaMovement(Vec3.ZERO);
     }

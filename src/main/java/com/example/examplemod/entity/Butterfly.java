@@ -13,7 +13,6 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
@@ -231,23 +230,20 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
     }
 
     @Override
-    protected void tickDeath() {
-        this.remove(RemovalReason.KILLED);
-    }
-
-    @Override
     public boolean isFlying() {
         return true;
     }
 
     @Override
+    @Nullable
     protected SoundEvent getHurtSound(DamageSource source) {
-        return SoundEvents.BEE_HURT;
+        return null;
     }
 
     @Override
+    @Nullable
     protected SoundEvent getDeathSound() {
-        return SoundEvents.BEE_DEATH;
+        return null;
     }
 
     public ButterflyVariant getVariant() {
