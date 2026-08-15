@@ -85,7 +85,7 @@ public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
     }
 
     private boolean isBlockTaken(LevelReader level, BlockPos pos) {
-        VoxelShape shape = level.getBlockState(pos).getCollisionShape(level, pos);
+        VoxelShape shape = level.getBlockState(pos).getShape(level, pos);
         if (shape.isEmpty()) {
             return true;
         }
@@ -106,7 +106,7 @@ public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
         }
 
         BlockState state = this.butterfly.level().getBlockState(this.blockPos);
-        VoxelShape shape = state.getCollisionShape(this.butterfly.level(), this.blockPos);
+        VoxelShape shape = state.getShape(this.butterfly.level(), this.blockPos);
         if (shape.isEmpty()) {
             return;
         }

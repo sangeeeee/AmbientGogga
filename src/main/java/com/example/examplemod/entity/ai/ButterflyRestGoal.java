@@ -13,12 +13,16 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public final class ButterflyRestGoal extends Goal {
+    private static final int MIN_REST_TICKS = 8 * 20;
+    private static final int MAX_REST_TICKS = 20 * 20;
+
     private final Butterfly butterfly;
     @Nullable
     private BlockPos restingPos;
     @Nullable
     private BlockState initialBlockState;
-    private int ticks;
+    private int restingTicks;
+    private int restDurationTicks;
 
     public ButterflyRestGoal(Butterfly butterfly) {
         this.butterfly = butterfly;
@@ -47,7 +51,9 @@ public final class ButterflyRestGoal extends Goal {
             this.restingPos = this.butterfly.blockPosition();
         }
         this.initialBlockState = this.butterfly.level().getBlockState(this.restingPos);
-        this.ticks = 0;
+        this.restingTicks = 0;
+        this.restDurationTicks = MIN_REST_TICKS
+                + this.butterfly.getRandom().nextInt(MAX_REST_TICKS - MIN_REST_TICKS + 1);
     }
 
     @Override
@@ -55,7 +61,8 @@ public final class ButterflyRestGoal extends Goal {
         this.butterfly.setNotLanded();
         this.restingPos = null;
         this.initialBlockState = null;
-        this.ticks = 0;
+        this.restingTicks = 0;
+        this.restDurationTicks = 0;
     }
 
     @Override
@@ -64,21 +71,24 @@ public final class ButterflyRestGoal extends Goal {
             this.restingPos = this.butterfly.blockPosition();
         }
 
-        this.ticks++;
         if (this.blockStateUpdated() || this.isBlockTaken(this.butterfly.level(), this.restingPos)) {
             this.butterfly.setNotLanded();
             return;
         }
 
+        if (!this.butterfly.areWingsFullyFolded()) {
+            return;
+        }
+
+        this.restingTicks++;
+        if (this.restingTicks >= this.restDurationTicks) {
+            this.butterfly.setTired(false);
+            this.butterfly.setNotLanded();
+            return;
+        }
+
         if (this.butterfly.getRandom().nextInt(200) == 0) {
-            if (this.ticks > 300) {
-                this.butterfly.setTired(false);
-                if (!this.butterfly.level().isNight()) {
-                    this.butterfly.setNotLanded();
-                }
-            } else {
-                this.butterfly.setYRot(this.butterfly.getRandom().nextInt(360));
-            }
+            this.butterfly.setYRot(this.butterfly.getRandom().nextInt(360));
         }
     }
 
@@ -89,7 +99,7 @@ public final class ButterflyRestGoal extends Goal {
     }
 
     private boolean isBlockTaken(Level level, BlockPos pos) {
-        VoxelShape shape = level.getBlockState(pos).getCollisionShape(level, pos);
+        VoxelShape shape = level.getBlockState(pos).getShape(level, pos);
         if (shape.isEmpty()) {
             return true;
         }

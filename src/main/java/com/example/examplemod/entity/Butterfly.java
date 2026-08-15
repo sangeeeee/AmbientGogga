@@ -342,6 +342,10 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
         return this.entityData.get(WINGS_FOLDED);
     }
 
+    public boolean areWingsFullyFolded() {
+        return this.wingFoldProgress >= 1.0F;
+    }
+
     public void setWingsFolded(boolean folded) {
         this.entityData.set(WINGS_FOLDED, folded);
     }
