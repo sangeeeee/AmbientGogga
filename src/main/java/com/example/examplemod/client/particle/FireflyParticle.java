@@ -17,7 +17,7 @@ public final class FireflyParticle extends TextureSheetParticle {
     private static final int EXTRA_FADE_IN_TICKS = 31;
     private static final int MIN_FADE_OUT_TICKS = 40;
     private static final int EXTRA_FADE_OUT_TICKS = 41;
-    private static final double STEERING_FACTOR = 0.045;
+    private static final double STEERING_FACTOR = 0.055;
     private static final double MAX_ROAM_DISTANCE = 12.0;
 
     private final SpriteSet sprites;
@@ -76,7 +76,7 @@ public final class FireflyParticle extends TextureSheetParticle {
         this.alpha = 0.0F;
 
         float warmth = this.random.nextFloat();
-        this.setColor(1.0F, 0.97F + warmth * 0.025F, 0.88F + warmth * 0.08F);
+        this.setColor(1.0F, 0.91F + warmth * 0.055F, 0.68F + warmth * 0.10F);
         this.pickSprite(sprites);
     }
 
@@ -96,14 +96,14 @@ public final class FireflyParticle extends TextureSheetParticle {
 
         double motionTime = this.age;
         double desiredVelocityX = this.targetVelocityX
-                + Math.sin(motionTime * this.motionFrequencyX + this.motionPhaseX) * 0.006
-                + Math.sin(motionTime * this.motionFrequencyY * 0.53 + this.motionPhaseZ) * 0.003;
+                + Math.sin(motionTime * this.motionFrequencyX + this.motionPhaseX) * 0.008
+                + Math.sin(motionTime * this.motionFrequencyY * 0.53 + this.motionPhaseZ) * 0.004;
         double desiredVelocityY = this.targetVelocityY
-                + Math.sin(motionTime * this.motionFrequencyY + this.motionPhaseY) * 0.004
-                + Math.cos(motionTime * this.motionFrequencyX * 0.61 + this.motionPhaseX) * 0.002;
+                + Math.sin(motionTime * this.motionFrequencyY + this.motionPhaseY) * 0.0055
+                + Math.cos(motionTime * this.motionFrequencyX * 0.61 + this.motionPhaseX) * 0.0028;
         double desiredVelocityZ = this.targetVelocityZ
-                + Math.cos(motionTime * this.motionFrequencyZ + this.motionPhaseZ) * 0.006
-                + Math.sin(motionTime * this.motionFrequencyX * 0.47 + this.motionPhaseY) * 0.003;
+                + Math.cos(motionTime * this.motionFrequencyZ + this.motionPhaseZ) * 0.008
+                + Math.sin(motionTime * this.motionFrequencyX * 0.47 + this.motionPhaseY) * 0.004;
 
         this.xd += (desiredVelocityX - this.xd) * STEERING_FACTOR;
         this.yd += (desiredVelocityY - this.yd) * STEERING_FACTOR;
@@ -138,7 +138,7 @@ public final class FireflyParticle extends TextureSheetParticle {
         if (collidedY) {
             this.yd = -this.yd * 0.30;
             this.targetVelocityY = this.onGround
-                    ? randomBetween(0.004, 0.012)
+                    ? randomBetween(0.006, 0.016)
                     : -this.targetVelocityY;
         }
         if (collidedZ) {
@@ -168,9 +168,9 @@ public final class FireflyParticle extends TextureSheetParticle {
         double distanceSquared = offsetX * offsetX + offsetY * offsetY + offsetZ * offsetZ;
         if (distanceSquared > MAX_ROAM_DISTANCE * MAX_ROAM_DISTANCE) {
             double inverseDistance = 1.0 / Math.sqrt(distanceSquared);
-            this.targetVelocityX = -offsetX * inverseDistance * 0.020;
-            this.targetVelocityY = -offsetY * inverseDistance * 0.014;
-            this.targetVelocityZ = -offsetZ * inverseDistance * 0.020;
+            this.targetVelocityX = -offsetX * inverseDistance * 0.028;
+            this.targetVelocityY = -offsetY * inverseDistance * 0.020;
+            this.targetVelocityZ = -offsetZ * inverseDistance * 0.028;
             this.steeringTicks = 30;
             return;
         }
@@ -178,9 +178,9 @@ public final class FireflyParticle extends TextureSheetParticle {
         double returnX = Mth.clamp((this.originX - this.x) * 0.0015, -0.006, 0.006);
         double returnY = Mth.clamp((this.originY - this.y) * 0.0020, -0.005, 0.005);
         double returnZ = Mth.clamp((this.originZ - this.z) * 0.0015, -0.006, 0.006);
-        this.targetVelocityX = randomBetween(-0.018, 0.018) + returnX;
-        this.targetVelocityY = randomBetween(-0.010, 0.010) + returnY;
-        this.targetVelocityZ = randomBetween(-0.018, 0.018) + returnZ;
+        this.targetVelocityX = randomBetween(-0.024, 0.024) + returnX;
+        this.targetVelocityY = randomBetween(-0.014, 0.014) + returnY;
+        this.targetVelocityZ = randomBetween(-0.024, 0.024) + returnZ;
         this.steeringTicks = 45 + this.random.nextInt(76);
     }
 

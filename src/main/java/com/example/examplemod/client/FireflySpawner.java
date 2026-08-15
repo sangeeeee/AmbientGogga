@@ -6,21 +6,24 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.biome.Biome;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.common.Tags;
 
 @EventBusSubscriber(modid = ExampleMod.MODID, value = Dist.CLIENT)
 public final class FireflySpawner {
     private static final int NIGHT_START = 13_000;
     private static final int NIGHT_END = 23_000;
-    private static final int ATTEMPT_INTERVAL_TICKS = 4;
-    private static final float SPAWN_CHANCE_PER_ATTEMPT = 0.32F;
+    private static final int ATTEMPT_INTERVAL_TICKS = 3;
+    private static final float SPAWN_CHANCE_PER_ATTEMPT = 0.5F;
     private static final int LOCATION_ATTEMPTS = 8;
     private static final double MIN_DISTANCE = 1.5;
     private static final double MAX_DISTANCE = 56.0;
@@ -48,7 +51,7 @@ public final class FireflySpawner {
         }
         ticksUntilAttempt = 0;
 
-        if (!isNight(level)) {
+        if (!isNight(level) || !isClearWeather(level) || !isFireflyHabitat(level, player)) {
             return;
         }
 
@@ -67,6 +70,19 @@ public final class FireflySpawner {
     private static boolean isNight(ClientLevel level) {
         long timeOfDay = Math.floorMod(level.getDayTime(), Level.TICKS_PER_DAY);
         return timeOfDay >= NIGHT_START && timeOfDay <= NIGHT_END;
+    }
+
+    private static boolean isClearWeather(ClientLevel level) {
+        return !level.isRaining() && !level.isThundering();
+    }
+
+    private static boolean isFireflyHabitat(ClientLevel level, LocalPlayer player) {
+        Holder<Biome> biome = level.getBiome(player.blockPosition());
+        boolean isForestOrPlains = biome.is(Tags.Biomes.IS_FOREST)
+                || biome.is(Tags.Biomes.IS_PLAINS);
+        boolean isSnowCovered = biome.is(Tags.Biomes.IS_SNOWY)
+                || biome.is(Tags.Biomes.IS_SNOWY_PLAINS);
+        return isForestOrPlains && !isSnowCovered;
     }
 
     private static boolean trySpawnFirefly(ClientLevel level, LocalPlayer player, RandomSource random) {
