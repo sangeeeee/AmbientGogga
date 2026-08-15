@@ -20,17 +20,17 @@ import net.neoforged.neoforge.common.Tags;
 
 @EventBusSubscriber(modid = ExampleMod.MODID, value = Dist.CLIENT)
 public final class FireflySpawner {
-    private static final int NIGHT_START = 13_000;
-    private static final int NIGHT_END = 23_000;
-    private static final int ATTEMPT_INTERVAL_TICKS = 3;
-    private static final float SPAWN_CHANCE_PER_ATTEMPT = 0.5F;
+    private static final int NIGHTFALL_START = 13_000;
+    private static final int DEEP_NIGHT_START = 18_000;
+    private static final int DAWN_START = 23_000;
+    private static final double MAX_SPAWNS_PER_SECOND = 10.0;
     private static final int LOCATION_ATTEMPTS = 8;
     private static final double MIN_DISTANCE = 1.5;
     private static final double MAX_DISTANCE = 56.0;
     private static final int VERTICAL_SEARCH_RADIUS = 24;
     private static final int MAX_HEIGHT_ABOVE_SOLID = 5;
 
-    private static int ticksUntilAttempt;
+    private static double spawnAccumulator;
 
     private FireflySpawner() {
     }
@@ -42,24 +42,23 @@ public final class FireflySpawner {
         LocalPlayer player = minecraft.player;
 
         if (level == null || player == null || minecraft.isPaused()) {
-            ticksUntilAttempt = 0;
+            spawnAccumulator = 0.0;
             return;
         }
 
-        if (++ticksUntilAttempt < ATTEMPT_INTERVAL_TICKS) {
+        double spawnsPerSecond = getSpawnsPerSecond(level);
+        if (spawnsPerSecond <= 0.0 || !isClearWeather(level) || !isFireflyHabitat(level, player)) {
+            spawnAccumulator = 0.0;
             return;
         }
-        ticksUntilAttempt = 0;
 
-        if (!isNight(level) || !isClearWeather(level) || !isFireflyHabitat(level, player)) {
+        spawnAccumulator += spawnsPerSecond / 20.0;
+        if (spawnAccumulator < 1.0) {
             return;
         }
+        spawnAccumulator -= 1.0;
 
         RandomSource random = level.getRandom();
-        if (random.nextFloat() > SPAWN_CHANCE_PER_ATTEMPT) {
-            return;
-        }
-
         for (int attempt = 0; attempt < LOCATION_ATTEMPTS; attempt++) {
             if (trySpawnFirefly(level, player, random)) {
                 return;
@@ -67,9 +66,31 @@ public final class FireflySpawner {
         }
     }
 
-    private static boolean isNight(ClientLevel level) {
+    private static double getSpawnsPerSecond(ClientLevel level) {
         long timeOfDay = Math.floorMod(level.getDayTime(), Level.TICKS_PER_DAY);
-        return timeOfDay >= NIGHT_START && timeOfDay <= NIGHT_END;
+        if (timeOfDay < NIGHTFALL_START) {
+            return 0.0;
+        }
+
+        if (timeOfDay < DEEP_NIGHT_START) {
+            double nightProgress = (double) (timeOfDay - NIGHTFALL_START)
+                    / (DEEP_NIGHT_START - NIGHTFALL_START);
+            return MAX_SPAWNS_PER_SECOND * smoothStep(nightProgress);
+        }
+
+        if (timeOfDay < DAWN_START) {
+            return MAX_SPAWNS_PER_SECOND;
+        }
+
+        double dawnProgress = (double) (timeOfDay - DAWN_START)
+                / (Level.TICKS_PER_DAY - DAWN_START);
+        double remainingNight = Mth.clamp(1.0 - dawnProgress, 0.0, 1.0);
+        return MAX_SPAWNS_PER_SECOND * remainingNight * remainingNight;
+    }
+
+    private static double smoothStep(double value) {
+        double clamped = Mth.clamp(value, 0.0, 1.0);
+        return clamped * clamped * (3.0 - 2.0 * clamped);
     }
 
     private static boolean isClearWeather(ClientLevel level) {
