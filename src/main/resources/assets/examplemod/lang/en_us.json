@@ -1,7 +1,4 @@
 {
-  "itemGroup.examplemod": "Example Mod Tab",
-  "block.examplemod.example_block": "Example Block",
-  "item.examplemod.example_item": "Example Item",
   "item.examplemod.butterfly_spawn_egg": "Butterfly Spawn Egg",
   "entity.examplemod.butterfly": "Butterfly",
   "entity.examplemod.butterfly.peacock": "Peacock",

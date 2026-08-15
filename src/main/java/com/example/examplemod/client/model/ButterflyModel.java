@@ -55,8 +55,8 @@ public final class ButterflyModel extends HierarchicalModel<Butterfly> {
                 MIN_WING_ANGLE,
                 MAX_WING_ANGLE
         );
-        this.leftWing.yRot = wingAngle;
-        this.rightWing.yRot = -wingAngle;
+        this.leftWing.zRot = wingAngle;
+        this.rightWing.zRot = -wingAngle;
     }
 
     public static LayerDefinition createBodyLayer() {
