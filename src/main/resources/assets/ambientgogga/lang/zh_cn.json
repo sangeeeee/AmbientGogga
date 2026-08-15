@@ -1,0 +1,20 @@
+{
+  "item.ambientgogga.butterfly_spawn_egg": "蝴蝶刷怪蛋",
+  "item.ambientgogga.butterfly_bottle": "蝴蝶瓶",
+  "item.ambientgogga.butterfly_bottle.count": "蝴蝶：%s/%s",
+  "item.ambientgogga.butterfly_bottle.release": "潜行并使用可释放全部蝴蝶",
+  "entity.ambientgogga.butterfly": "蝴蝶",
+  "entity.ambientgogga.butterfly.peacock": "孔雀蛱蝶",
+  "entity.ambientgogga.butterfly.brimstone": "钩粉蝶",
+  "entity.ambientgogga.butterfly.cabbage_white": "菜粉蝶",
+  "entity.ambientgogga.butterfly.common_blue": "普通蓝蝶",
+  "entity.ambientgogga.butterfly.orange_tip": "橙尖粉蝶",
+  "entity.ambientgogga.butterfly.monarch": "帝王蝶",
+  "entity.ambientgogga.butterfly.white_admiral": "白条蛱蝶",
+  "entity.ambientgogga.butterfly.red_admiral": "红蛱蝶",
+  "entity.ambientgogga.butterfly.speckled_wood": "斑木蝶",
+  "entity.ambientgogga.butterfly.purple_emperor": "紫闪蛱蝶",
+  "entity.ambientgogga.butterfly.ringlet": "眼蝶",
+  "entity.ambientgogga.butterfly.swallowtail": "凤蝶",
+  "entity.ambientgogga.butterfly.mourning_cloak": "哀蛱蝶"
+}

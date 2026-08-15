@@ -1,0 +1,10 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": "minecraft:flower_forest",
+  "spawners": {
+    "type": "ambientgogga:butterfly",
+    "weight": 5,
+    "minCount": 4,
+    "maxCount": 8
+  }
+}

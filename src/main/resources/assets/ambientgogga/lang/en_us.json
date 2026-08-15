@@ -1,0 +1,20 @@
+{
+  "item.ambientgogga.butterfly_spawn_egg": "Butterfly Spawn Egg",
+  "item.ambientgogga.butterfly_bottle": "Butterfly Bottle",
+  "item.ambientgogga.butterfly_bottle.count": "Butterflies: %s/%s",
+  "item.ambientgogga.butterfly_bottle.release": "Sneak and use to release all",
+  "entity.ambientgogga.butterfly": "Butterfly",
+  "entity.ambientgogga.butterfly.peacock": "Peacock",
+  "entity.ambientgogga.butterfly.brimstone": "Brimstone",
+  "entity.ambientgogga.butterfly.cabbage_white": "Cabbage White",
+  "entity.ambientgogga.butterfly.common_blue": "Common Blue",
+  "entity.ambientgogga.butterfly.orange_tip": "Orange Tip",
+  "entity.ambientgogga.butterfly.monarch": "Monarch",
+  "entity.ambientgogga.butterfly.white_admiral": "White Admiral",
+  "entity.ambientgogga.butterfly.red_admiral": "Red Admiral",
+  "entity.ambientgogga.butterfly.speckled_wood": "Speckled Wood",
+  "entity.ambientgogga.butterfly.purple_emperor": "Purple Emperor",
+  "entity.ambientgogga.butterfly.ringlet": "Ringlet",
+  "entity.ambientgogga.butterfly.swallowtail": "Swallowtail",
+  "entity.ambientgogga.butterfly.mourning_cloak": "Mourning Cloak"
+}

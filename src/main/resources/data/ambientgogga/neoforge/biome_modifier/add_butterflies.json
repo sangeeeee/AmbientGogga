@@ -1,0 +1,10 @@
+{
+  "type": "neoforge:add_spawns",
+  "biomes": "#ambientgogga:butterfly_spawn_biomes",
+  "spawners": {
+    "type": "ambientgogga:butterfly",
+    "weight": 10,
+    "minCount": 4,
+    "maxCount": 8
+  }
+}

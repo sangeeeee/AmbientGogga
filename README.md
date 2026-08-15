@@ -1,25 +1,35 @@
+# Ambient Gogga
 
-Installation information
-=======
+Ambient Gogga（氛围小虫）is a NeoForge mod for Minecraft 1.21.1 that adds small critters to make the world feel more alive and atmospheric.
 
-This template repository can be directly cloned to get you started with a new
-mod. Simply create a new repository cloned from this one, by following the
-instructions provided by [GitHub](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
+## Features
 
-Once you have your clone, simply open the repository in the IDE of your choice. The usual recommendation for an IDE is either IntelliJ IDEA or Eclipse.
+- Fireflies appear as lightweight client-side particles at night.
+- Butterflies spawn naturally in suitable biomes, fly through the environment, rest on flowers, and react to players and weather.
+- Up to three butterflies can be captured in one butterfly bottle and released together while preserving their variants.
 
-If at any point you are missing libraries in your IDE, or you've run into problems you can
-run `gradlew --refresh-dependencies` to refresh the local cache. `gradlew clean` to reset everything 
-{this does not affect your code} and then start the process again.
+## Requirements
 
-Mapping Names:
-============
-By default, the MDK is configured to use the official mapping names from Mojang for methods and fields 
-in the Minecraft codebase. These names are covered by a specific license. All modders should be aware of this
-license. For the latest license text, refer to the mapping file itself, or the reference copy here:
-https://github.com/NeoForged/NeoForm/blob/main/Mojang.md
+- Minecraft 1.21.1
+- NeoForge 21.1 or newer
+- Java 21
 
-Additional Resources: 
-==========
-Community Documentation: https://docs.neoforged.net/  
-NeoForged Discord: https://discord.neoforged.net/
+## Credits and third-party resources
+
+Ambient Gogga was inspired by [Illuminations](https://www.curseforge.com/minecraft/mc-mods/illuminations) by **doctor4t**, particularly its atmospheric firefly effects.
+
+The butterfly feature was inspired by [Terra Incognita: The Unknown Land](https://www.curseforge.com/minecraft/mc-mods/terraincognita) by **azmalent**. Butterfly texture resources from the older Minecraft 1.18.2 version of Terra Incognita are used in this project. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for details.
+
+## Building
+
+Run the Gradle build from the project root:
+
+```shell
+./gradlew build
+```
+
+The compiled mod is written to `build/libs/`.
+
+## License
+
+Ambient Gogga's original source code and original assets are available under the [MIT License](LICENSE). Third-party resources retain their respective upstream licenses and are not relicensed by the Ambient Gogga MIT license.

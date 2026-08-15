@@ -36,17 +36,25 @@ displayName="${mod_name}" #mandatory
 #displayURL="https://change.me.to.your.mods.homepage.example.invalid/" #optional
 
 # A file name (in the root of the mod JAR) containing a logo for display
-#logoFile="examplemod.png" #optional
+#logoFile="ambientgogga.png" #optional
 
 # A text field displayed in the mod UI
-#credits="" #optional
+credits="Inspired by Illuminations by doctor4t and Terra Incognita by azmalent."
 
 # The authors of the mod, displayed in the mod UI (optional)
 authors="Sange"
 
 # The description text for the mod (multi line!) (#mandatory)
 description='''
-Example mod description.
+Adds small critters that enhance the atmosphere of the world.
+
+Inspired by Illuminations by doctor4t:
+https://www.curseforge.com/minecraft/mc-mods/illuminations
+
+Inspired by Terra Incognita: The Unknown Land by azmalent:
+https://www.curseforge.com/minecraft/mc-mods/terraincognita
+
+Butterfly texture resources are used from an older version of Terra Incognita.
 '''
 
 # The [[mixins]] block allows you to declare your mixin config to FML so that it gets loaded.
