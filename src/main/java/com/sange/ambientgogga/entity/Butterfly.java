@@ -10,11 +10,14 @@ import com.sange.ambientgogga.world.ModTags;
 import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.sounds.SoundEvent;
@@ -41,6 +44,8 @@ import net.minecraft.world.entity.animal.FlyingAnimal;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -50,10 +55,17 @@ import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.common.Tags;
 import org.jetbrains.annotations.Nullable;
 
 public class Butterfly extends PathfinderMob implements FlyingAnimal {
+    private static final ResourceLocation CROPTOPIA_BUTTER = ResourceLocation.fromNamespaceAndPath(
+            "croptopia",
+            "butter"
+    );
+    private static final float BUTTER_DROP_CHANCE = 0.03F;
+    private static final float BUTTER_DROP_CHANCE_PER_LOOTING_LEVEL = 0.01F;
     private static final String RELEASED_FROM_BOTTLE_TAG = "ReleasedFromBottle";
     private static final EntityDataAccessor<Integer> VARIANT =
             SynchedEntityData.defineId(Butterfly.class, EntityDataSerializers.INT);
@@ -329,6 +341,37 @@ public class Butterfly extends PathfinderMob implements FlyingAnimal {
     @Nullable
     protected SoundEvent getDeathSound() {
         return null;
+    }
+
+    @Override
+    protected void dropCustomDeathLoot(ServerLevel level, DamageSource damageSource, boolean recentlyHit) {
+        super.dropCustomDeathLoot(level, damageSource, recentlyHit);
+        if (this instanceof Shichieichou || !ModList.get().isLoaded("croptopia")) {
+            return;
+        }
+
+        BuiltInRegistries.ITEM.getOptional(CROPTOPIA_BUTTER).ifPresent(butter -> {
+            int lootingLevel = this.getLootingLevel(level, damageSource);
+            float dropChance = Math.min(
+                    1.0F,
+                    BUTTER_DROP_CHANCE + BUTTER_DROP_CHANCE_PER_LOOTING_LEVEL * lootingLevel
+            );
+            if (this.getRandom().nextFloat() < dropChance) {
+                this.spawnAtLocation(new ItemStack(butter));
+            }
+        });
+    }
+
+    private int getLootingLevel(ServerLevel level, DamageSource damageSource) {
+        ItemStack weapon = damageSource.getWeaponItem();
+        if (weapon == null || weapon.isEmpty()) {
+            return 0;
+        }
+
+        Holder<Enchantment> looting = level.registryAccess()
+                .lookupOrThrow(Registries.ENCHANTMENT)
+                .getOrThrow(Enchantments.LOOTING);
+        return weapon.getEnchantmentLevel(looting);
     }
 
     public ButterflyVariant getVariant() {
