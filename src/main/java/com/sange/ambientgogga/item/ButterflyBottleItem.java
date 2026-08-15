@@ -106,10 +106,10 @@ public final class ButterflyBottleItem extends Item {
                 butterfly.getX(),
                 butterfly.getY(),
                 butterfly.getZ(),
-                SoundEvents.BOTTLE_FILL,
+                SoundEvents.BUNDLE_INSERT,
                 SoundSource.NEUTRAL,
-                1.0F,
-                1.1F
+                0.7F,
+                1.25F
         );
         butterfly.discard();
         return InteractionResult.SUCCESS;
@@ -233,10 +233,10 @@ public final class ButterflyBottleItem extends Item {
                 position.x,
                 position.y,
                 position.z,
-                SoundEvents.BOTTLE_EMPTY,
+                SoundEvents.BUNDLE_REMOVE_ONE,
                 SoundSource.NEUTRAL,
-                1.0F,
-                1.0F
+                0.8F,
+                1.2F
         );
         return InteractionResult.SUCCESS;
     }

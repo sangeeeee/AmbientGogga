@@ -278,10 +278,10 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
                 this.getX(),
                 this.getY(),
                 this.getZ(),
-                SoundEvents.BOTTLE_FILL,
+                SoundEvents.BUNDLE_INSERT,
                 SoundSource.NEUTRAL,
-                1.0F,
-                1.1F
+                0.7F,
+                1.25F
         );
         this.discard();
         return InteractionResult.SUCCESS;
