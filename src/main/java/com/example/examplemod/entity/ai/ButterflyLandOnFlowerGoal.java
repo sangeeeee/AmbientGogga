@@ -16,10 +16,14 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
     private static final float DAYTIME_FLOWER_INTEREST = 0.35F;
+    private static final int TARGET_VALIDATION_INTERVAL = 5;
 
     private final Butterfly butterfly;
     private boolean mandatorySearchActive;
     private boolean voluntaryVisit;
+    private boolean targetActive;
+    private boolean cachedTargetValid;
+    private int nextTargetValidationTick;
 
     public ButterflyLandOnFlowerGoal(Butterfly butterfly, double speed, int searchRadius) {
         super(butterfly, speed, searchRadius);
@@ -66,13 +70,33 @@ public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
     }
 
     @Override
+    public void start() {
+        this.targetActive = true;
+        this.refreshTargetCache(this.butterfly.level());
+        super.start();
+    }
+
+    @Override
     public void stop() {
+        boolean targetInvalid = this.targetActive && !this.cachedTargetValid;
         this.butterfly.getNavigation().stop();
         this.voluntaryVisit = false;
+        this.targetActive = false;
+        this.cachedTargetValid = false;
+        if (targetInvalid) {
+            this.nextStartTick = 0;
+        }
     }
 
     @Override
     protected boolean isValidTarget(LevelReader level, BlockPos pos) {
+        if (this.targetActive && pos.equals(this.blockPos)) {
+            return this.isCurrentTargetValid(level, false);
+        }
+        return this.isTargetStateValid(level, pos);
+    }
+
+    private boolean isTargetStateValid(LevelReader level, BlockPos pos) {
         BlockState state = level.getBlockState(pos);
         return this.canLandOnBlock(state) && !this.isBlockTaken(level, pos);
     }
@@ -101,7 +125,12 @@ public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
     @Override
     public void tick() {
         super.tick();
-        if (!this.isReachedTarget() || !this.isValidTarget(this.butterfly.level(), this.blockPos)) {
+        if (!this.isReachedTarget()) {
+            return;
+        }
+        if (!this.isCurrentTargetValid(this.butterfly.level(), true)) {
+            this.butterfly.getNavigation().stop();
+            this.nextStartTick = 0;
             return;
         }
 
@@ -127,5 +156,17 @@ public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
         }
         this.butterfly.setPos(x, y, z);
         this.butterfly.setDeltaMovement(Vec3.ZERO);
+    }
+
+    private void refreshTargetCache(LevelReader level) {
+        this.cachedTargetValid = this.isTargetStateValid(level, this.blockPos);
+        this.nextTargetValidationTick = this.butterfly.tickCount + TARGET_VALIDATION_INTERVAL;
+    }
+
+    private boolean isCurrentTargetValid(LevelReader level, boolean force) {
+        if (force || this.butterfly.tickCount >= this.nextTargetValidationTick) {
+            this.refreshTargetCache(level);
+        }
+        return this.cachedTargetValid;
     }
 }

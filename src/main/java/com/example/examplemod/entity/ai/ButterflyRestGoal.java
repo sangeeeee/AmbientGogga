@@ -13,8 +13,9 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
 public final class ButterflyRestGoal extends Goal {
-    private static final int MIN_REST_TICKS = 8 * 20;
-    private static final int MAX_REST_TICKS = 20 * 20;
+    private static final int MIN_REST_TICKS = 3 * 20;
+    private static final int MAX_REST_TICKS = 15 * 20;
+    private static final int TARGET_VALIDATION_INTERVAL = 5;
 
     private final Butterfly butterfly;
     @Nullable
@@ -23,6 +24,8 @@ public final class ButterflyRestGoal extends Goal {
     private BlockState initialBlockState;
     private int restingTicks;
     private int restDurationTicks;
+    private int nextTargetValidationTick;
+    private boolean cachedTargetValid;
 
     public ButterflyRestGoal(Butterfly butterfly) {
         this.butterfly = butterfly;
@@ -42,7 +45,7 @@ public final class ButterflyRestGoal extends Goal {
     public boolean canContinueToUse() {
         return this.butterfly.isLanded()
                 && (this.butterfly.isTired() || this.butterfly.level().isNight())
-                && this.noThreateningPlayersNearby();
+                && this.isCurrentTargetValid(false);
     }
 
     @Override
@@ -54,6 +57,7 @@ public final class ButterflyRestGoal extends Goal {
         this.restingTicks = 0;
         this.restDurationTicks = MIN_REST_TICKS
                 + this.butterfly.getRandom().nextInt(MAX_REST_TICKS - MIN_REST_TICKS + 1);
+        this.refreshTargetCache();
     }
 
     @Override
@@ -63,6 +67,8 @@ public final class ButterflyRestGoal extends Goal {
         this.initialBlockState = null;
         this.restingTicks = 0;
         this.restDurationTicks = 0;
+        this.nextTargetValidationTick = 0;
+        this.cachedTargetValid = false;
     }
 
     @Override
@@ -71,7 +77,7 @@ public final class ButterflyRestGoal extends Goal {
             this.restingPos = this.butterfly.blockPosition();
         }
 
-        if (this.blockStateUpdated() || this.isBlockTaken(this.butterfly.level(), this.restingPos)) {
+        if (!this.isCurrentTargetValid(false)) {
             this.butterfly.setNotLanded();
             return;
         }
@@ -116,8 +122,19 @@ public final class ButterflyRestGoal extends Goal {
         });
     }
 
-    private boolean blockStateUpdated() {
-        return this.initialBlockState != this.butterfly.level().getBlockState(this.butterfly.blockPosition());
+    private void refreshTargetCache() {
+        this.cachedTargetValid = this.restingPos != null
+                && this.initialBlockState == this.butterfly.level().getBlockState(this.restingPos)
+                && !this.isBlockTaken(this.butterfly.level(), this.restingPos)
+                && this.noThreateningPlayersNearby();
+        this.nextTargetValidationTick = this.butterfly.tickCount + TARGET_VALIDATION_INTERVAL;
+    }
+
+    private boolean isCurrentTargetValid(boolean force) {
+        if (force || this.butterfly.tickCount >= this.nextTargetValidationTick) {
+            this.refreshTargetCache();
+        }
+        return this.cachedTargetValid;
     }
 
     @Nullable

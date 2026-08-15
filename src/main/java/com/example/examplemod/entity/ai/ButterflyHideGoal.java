@@ -18,8 +18,14 @@ public final class ButterflyHideGoal extends MoveToBlockGoal {
     private static final double GRASS_CONTACT_MARGIN = 0.15D;
     private static final int SETTLE_TICKS = 2;
     private static final int FOLDED_WAIT_TICKS = 20;
+    private static final int TARGET_VALIDATION_INTERVAL = 5;
 
     private final Butterfly butterfly;
+    private boolean targetActive;
+    private boolean cachedTargetValid;
+    private boolean targetIsGrassPlant;
+    private int nextTargetValidationTick;
+    private Vec3 cachedHideoutPosition = Vec3.ZERO;
     private boolean waitingAtHideout;
     private int settleTicks;
     private int foldedWaitTicks;
@@ -42,7 +48,7 @@ public final class ButterflyHideGoal extends MoveToBlockGoal {
             return false;
         }
         return this.waitingAtHideout
-                ? this.isValidTarget(this.butterfly.level(), this.blockPos)
+                ? this.isCurrentTargetValid(this.butterfly.level(), false)
                 : super.canContinueToUse();
     }
 
@@ -55,6 +61,8 @@ public final class ButterflyHideGoal extends MoveToBlockGoal {
             this.butterfly.setNotLanded();
         }
         this.butterfly.setAtHideout(false);
+        this.targetActive = true;
+        this.refreshTargetCache(this.butterfly.level());
         super.start();
     }
 
@@ -66,6 +74,8 @@ public final class ButterflyHideGoal extends MoveToBlockGoal {
             this.butterfly.setNoGravity(false);
         }
         this.waitingAtHideout = false;
+        this.targetActive = false;
+        this.cachedTargetValid = false;
         this.settleTicks = 0;
         this.foldedWaitTicks = 0;
         if (Butterfly.shouldHide(this.butterfly.level())) {
@@ -80,7 +90,14 @@ public final class ButterflyHideGoal extends MoveToBlockGoal {
 
     @Override
     protected boolean isValidTarget(LevelReader level, BlockPos pos) {
+        if (this.targetActive && pos.equals(this.blockPos)) {
+            return this.isCurrentTargetValid(level, false);
+        }
         BlockState state = level.getBlockState(pos);
+        return this.isTargetStateValid(level, pos, state);
+    }
+
+    private boolean isTargetStateValid(LevelReader level, BlockPos pos, BlockState state) {
         if (isGrassPlant(state)) {
             return true;
         }
@@ -95,15 +112,19 @@ public final class ButterflyHideGoal extends MoveToBlockGoal {
 
     @Override
     protected BlockPos getMoveToTarget() {
-        return isGrassPlant(this.butterfly.level().getBlockState(this.blockPos))
+        return this.targetIsGrassPlant
                 ? this.blockPos
                 : this.blockPos.above();
     }
 
     @Override
     protected void moveMobToBlock() {
-        Vec3 target = this.getHideoutPosition();
-        this.butterfly.getNavigation().moveTo(target.x, target.y, target.z, this.speedModifier);
+        this.butterfly.getNavigation().moveTo(
+                this.cachedHideoutPosition.x,
+                this.cachedHideoutPosition.y,
+                this.cachedHideoutPosition.z,
+                this.speedModifier
+        );
     }
 
     @Override
@@ -120,7 +141,9 @@ public final class ButterflyHideGoal extends MoveToBlockGoal {
     }
 
     private void beginWaitingAtHideout() {
-        if (!this.isValidTarget(this.butterfly.level(), this.blockPos)) {
+        if (!this.isCurrentTargetValid(this.butterfly.level(), true)) {
+            this.butterfly.getNavigation().stop();
+            this.nextStartTick = 0;
             return;
         }
 
@@ -135,7 +158,7 @@ public final class ButterflyHideGoal extends MoveToBlockGoal {
     }
 
     private void tickAtHideout() {
-        if (!this.isValidTarget(this.butterfly.level(), this.blockPos)) {
+        if (!this.isCurrentTargetValid(this.butterfly.level(), false)) {
             this.butterfly.setAtHideout(false);
             this.butterfly.setNoGravity(false);
             this.waitingAtHideout = false;
@@ -159,15 +182,25 @@ public final class ButterflyHideGoal extends MoveToBlockGoal {
     }
 
     private void holdAtHideout() {
-        Vec3 position = this.getHideoutPosition();
         this.butterfly.getNavigation().stop();
         this.butterfly.setDeltaMovement(Vec3.ZERO);
         this.butterfly.setNoGravity(true);
-        this.butterfly.setPos(position.x, position.y, position.z);
+        this.butterfly.setPos(
+                this.cachedHideoutPosition.x,
+                this.cachedHideoutPosition.y,
+                this.cachedHideoutPosition.z
+        );
     }
 
-    private Vec3 getHideoutPosition() {
-        BlockState state = this.butterfly.level().getBlockState(this.blockPos);
+    private void refreshTargetCache(LevelReader level) {
+        BlockState state = level.getBlockState(this.blockPos);
+        this.cachedTargetValid = this.isTargetStateValid(level, this.blockPos, state);
+        this.nextTargetValidationTick = this.butterfly.tickCount + TARGET_VALIDATION_INTERVAL;
+        if (!this.cachedTargetValid) {
+            return;
+        }
+
+        this.targetIsGrassPlant = isGrassPlant(state);
         double yOffset;
         if (state.is(Blocks.TALL_GRASS)) {
             yOffset = 0.35D;
@@ -176,13 +209,23 @@ public final class ButterflyHideGoal extends MoveToBlockGoal {
         } else {
             yOffset = 1.01D;
         }
-        return new Vec3(this.blockPos.getX() + 0.5D, this.blockPos.getY() + yOffset, this.blockPos.getZ() + 0.5D);
+        this.cachedHideoutPosition = new Vec3(
+                this.blockPos.getX() + 0.5D,
+                this.blockPos.getY() + yOffset,
+                this.blockPos.getZ() + 0.5D
+        );
+    }
+
+    private boolean isCurrentTargetValid(LevelReader level, boolean force) {
+        if (force || this.butterfly.tickCount >= this.nextTargetValidationTick) {
+            this.refreshTargetCache(level);
+        }
+        return this.cachedTargetValid;
     }
 
     private boolean isTouchingTarget() {
         AABB contactBox = this.butterfly.getBoundingBox().inflate(GRASS_CONTACT_MARGIN);
-        return this.isValidTarget(this.butterfly.level(), this.blockPos)
-                && contactBox.intersects(new AABB(this.blockPos));
+        return contactBox.intersects(new AABB(this.blockPos));
     }
 
     private static boolean isGrassPlant(BlockState state) {
