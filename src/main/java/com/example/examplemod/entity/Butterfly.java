@@ -1,6 +1,7 @@
 package com.example.examplemod.entity;
 
 import com.example.examplemod.entity.ai.ButterflyLandOnFlowerGoal;
+import com.example.examplemod.entity.ai.ButterflyAvoidPlayerGoal;
 import com.example.examplemod.entity.ai.ButterflyHideGoal;
 import com.example.examplemod.entity.ai.ButterflyRestGoal;
 import com.example.examplemod.entity.ai.ButterflyWanderGoal;
@@ -28,7 +29,6 @@ import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.FlyingMoveControl;
-import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.navigation.FlyingPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
@@ -40,6 +40,7 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.GrassBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.Tags;
@@ -65,6 +66,7 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
         }
         return !player.isCreative()
                 && !player.isSpectator()
+                && !player.level().getBiome(player.blockPosition()).is(Biomes.FLOWER_FOREST)
                 && !player.getItemBySlot(EquipmentSlot.HEAD).is(ModTags.BUTTERFLY_FRIENDLY_HEADWEAR);
     };
 
@@ -126,7 +128,7 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new ButterflyHideGoal(this));
-        this.goalSelector.addGoal(1, new AvoidEntityGoal<>(this, Player.class, 4.0F, 2.0D, 2.4D, SHOULD_AVOID));
+        this.goalSelector.addGoal(1, new ButterflyAvoidPlayerGoal(this));
         this.goalSelector.addGoal(2, this.restGoal = new ButterflyRestGoal(this));
         this.goalSelector.addGoal(3, new ButterflyLandOnFlowerGoal(this, 2.4D, 16));
         this.goalSelector.addGoal(4, new ButterflyWanderGoal(this));
