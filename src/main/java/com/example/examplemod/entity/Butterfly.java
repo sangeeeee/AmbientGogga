@@ -1,6 +1,7 @@
 package com.example.examplemod.entity;
 
 import com.example.examplemod.entity.ai.ButterflyLandOnFlowerGoal;
+import com.example.examplemod.entity.ai.ButterflyHideGoal;
 import com.example.examplemod.entity.ai.ButterflyRestGoal;
 import com.example.examplemod.entity.ai.ButterflyWanderGoal;
 import com.example.examplemod.world.ModTags;
@@ -99,7 +100,8 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
                 && biome.is(Tags.Biomes.IS_OVERWORLD)
                 && !biome.is(Tags.Biomes.IS_COLD)
                 && !biome.is(Tags.Biomes.IS_DENSE_VEGETATION);
-        return validBiome
+        return !shouldHide(level.getLevel())
+                && validBiome
                 && level.getBlockState(pos.below()).getBlock() instanceof GrassBlock
                 && pos.getY() >= level.getSeaLevel()
                 && level.getRawBrightness(pos, 0) > 8;
@@ -116,11 +118,12 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(0, new AvoidEntityGoal<>(this, Player.class, 4.0F, 2.0D, 2.4D, SHOULD_AVOID));
-        this.goalSelector.addGoal(1, this.restGoal = new ButterflyRestGoal(this));
-        this.goalSelector.addGoal(2, new ButterflyLandOnFlowerGoal(this, 2.4D, 16));
-        this.goalSelector.addGoal(3, new ButterflyWanderGoal(this));
-        this.goalSelector.addGoal(4, new FloatGoal(this));
+        this.goalSelector.addGoal(0, new ButterflyHideGoal(this));
+        this.goalSelector.addGoal(1, new AvoidEntityGoal<>(this, Player.class, 4.0F, 2.0D, 2.4D, SHOULD_AVOID));
+        this.goalSelector.addGoal(2, this.restGoal = new ButterflyRestGoal(this));
+        this.goalSelector.addGoal(3, new ButterflyLandOnFlowerGoal(this, 2.4D, 16));
+        this.goalSelector.addGoal(4, new ButterflyWanderGoal(this));
+        this.goalSelector.addGoal(5, new FloatGoal(this));
     }
 
     @Override
@@ -302,5 +305,9 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
 
     public ButterflyRestGoal getRestGoal() {
         return this.restGoal;
+    }
+
+    public static boolean shouldHide(Level level) {
+        return level.isNight() || level.isRaining() || level.isThundering();
     }
 }
