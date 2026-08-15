@@ -91,7 +91,7 @@ public final class Shichieichou extends Butterfly {
 
     @Override
     public float getWingRotation(float ageInTicks) {
-        return Math.abs(Mth.sin(ageInTicks / 4.8F));
+        return Math.abs(Mth.sin(ageInTicks / 6.4F));
     }
 
     @Override

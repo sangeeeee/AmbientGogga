@@ -2,6 +2,7 @@ package com.sange.ambientgogga.client.model;
 
 import com.sange.ambientgogga.AmbientGogga;
 import com.sange.ambientgogga.entity.Butterfly;
+import com.sange.ambientgogga.entity.Shichieichou;
 import java.util.Set;
 import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
@@ -27,6 +28,7 @@ public final class ButterflyModel extends HierarchicalModel<Butterfly> {
 
     private static final float MIN_WING_ANGLE = (float) (Math.PI / 5.0D);
     private static final float MAX_WING_ANGLE = (float) (Math.PI * 4.0D / 5.0D);
+    private static final float SHICHIEICHOU_MIN_WING_ANGLE = (float) (Math.PI / 15.0D);
     private static final float FOLDED_WING_ANGLE = 0.05F;
 
     private final ModelPart root;
@@ -57,9 +59,12 @@ public final class ButterflyModel extends HierarchicalModel<Butterfly> {
             float headPitch
     ) {
         this.group.xRot = butterfly.isResting() ? 0.0F : -0.2618F;
+        float minimumWingAngle = butterfly instanceof Shichieichou
+                ? SHICHIEICHOU_MIN_WING_ANGLE
+                : MIN_WING_ANGLE;
         float flyingWingAngle = Mth.lerp(
                 butterfly.getWingRotation(ageInTicks),
-                MIN_WING_ANGLE,
+                minimumWingAngle,
                 MAX_WING_ANGLE
         );
         float wingAngle = Mth.lerp(
