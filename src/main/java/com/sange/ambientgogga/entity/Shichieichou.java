@@ -1,8 +1,7 @@
 package com.sange.ambientgogga.entity;
 
 import com.sange.ambientgogga.AmbientGogga;
-import com.sange.ambientgogga.entity.ai.ButterflyWanderGoal;
-import com.sange.ambientgogga.entity.ai.ShichieichouOrbitPlayerGoal;
+import com.sange.ambientgogga.entity.ai.ShichieichouWanderGoal;
 import com.sange.ambientgogga.item.ButterflyBottleItem;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -42,9 +41,8 @@ public final class Shichieichou extends Butterfly {
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(0, new ShichieichouOrbitPlayerGoal(this));
-        this.goalSelector.addGoal(1, new ButterflyWanderGoal(this));
-        this.goalSelector.addGoal(2, new FloatGoal(this));
+        this.goalSelector.addGoal(0, new ShichieichouWanderGoal(this));
+        this.goalSelector.addGoal(1, new FloatGoal(this));
     }
 
     @Override
@@ -106,7 +104,7 @@ public final class Shichieichou extends Butterfly {
 
     @Override
     public float getWingRotation(float ageInTicks) {
-        return Math.abs(Mth.sin(ageInTicks / 2.4F));
+        return Math.abs(Mth.sin(ageInTicks / 4.8F));
     }
 
     @Override
