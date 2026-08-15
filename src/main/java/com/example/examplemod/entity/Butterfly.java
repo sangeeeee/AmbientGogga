@@ -54,6 +54,10 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
             SynchedEntityData.defineId(Butterfly.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Float> SIZE_MODIFIER =
             SynchedEntityData.defineId(Butterfly.class, EntityDataSerializers.FLOAT);
+    private static final EntityDataAccessor<Boolean> AT_HIDEOUT =
+            SynchedEntityData.defineId(Butterfly.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Integer> HIDE_FOLD_START_TICK =
+            SynchedEntityData.defineId(Butterfly.class, EntityDataSerializers.INT);
 
     public static final Predicate<net.minecraft.world.entity.LivingEntity> SHOULD_AVOID = entity -> {
         if (!(entity instanceof Player player)) {
@@ -114,6 +118,8 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
         builder.define(TIRED, false);
         builder.define(LANDED, false);
         builder.define(SIZE_MODIFIER, 0.7F);
+        builder.define(AT_HIDEOUT, false);
+        builder.define(HIDE_FOLD_START_TICK, -1);
     }
 
     @Override
@@ -184,7 +190,7 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
             this.underWaterTicks = 0;
         }
 
-        if (this.isLanded()) {
+        if (this.isLanded() || this.isAtHideout()) {
             this.flyingTicks = 0;
             this.setDeltaMovement(Vec3.ZERO);
         } else {
@@ -194,6 +200,15 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
             }
             this.setDeltaMovement(this.getDeltaMovement().multiply(1.0D, 0.8D, 1.0D));
         }
+    }
+
+    @Override
+    public void travel(Vec3 travelVector) {
+        if (this.isAtHideout()) {
+            this.setDeltaMovement(Vec3.ZERO);
+            return;
+        }
+        super.travel(travelVector);
     }
 
     @Override
@@ -289,6 +304,31 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
         this.setLanded(false);
         BlockPos pos = this.blockPosition();
         this.setPos(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D);
+    }
+
+    public boolean isAtHideout() {
+        return this.entityData.get(AT_HIDEOUT);
+    }
+
+    public void setAtHideout(boolean atHideout) {
+        this.entityData.set(AT_HIDEOUT, atHideout);
+        if (!atHideout) {
+            this.entityData.set(HIDE_FOLD_START_TICK, -1);
+        }
+    }
+
+    public void startHidingWingFold() {
+        if (this.isAtHideout() && this.entityData.get(HIDE_FOLD_START_TICK) < 0) {
+            this.entityData.set(HIDE_FOLD_START_TICK, this.tickCount);
+        }
+    }
+
+    public float getHideFoldProgress(float ageInTicks) {
+        int foldStartTick = this.entityData.get(HIDE_FOLD_START_TICK);
+        if (!this.isAtHideout() || foldStartTick < 0) {
+            return 0.0F;
+        }
+        return Mth.clamp((ageInTicks - foldStartTick) / 4.0F, 0.0F, 1.0F);
     }
 
     public float getWingRotation(float ageInTicks) {
