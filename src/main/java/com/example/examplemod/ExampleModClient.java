@@ -1,6 +1,9 @@
 package com.example.examplemod;
 
+import com.example.examplemod.client.model.ButterflyModel;
 import com.example.examplemod.client.particle.FireflyParticle;
+import com.example.examplemod.client.renderer.ButterflyRenderer;
+import com.example.examplemod.entity.ModEntities;
 import com.example.examplemod.particle.ModParticles;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
@@ -9,6 +12,7 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
@@ -22,6 +26,8 @@ public class ExampleModClient {
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         modEventBus.addListener(ExampleModClient::onClientSetup);
         modEventBus.addListener(ExampleModClient::registerParticleProviders);
+        modEventBus.addListener(ExampleModClient::registerEntityRenderers);
+        modEventBus.addListener(ExampleModClient::registerLayerDefinitions);
     }
 
     private static void onClientSetup(FMLClientSetupEvent event) {
@@ -32,5 +38,13 @@ public class ExampleModClient {
 
     private static void registerParticleProviders(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(ModParticles.FIREFLY.get(), FireflyParticle.Provider::new);
+    }
+
+    private static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(ModEntities.BUTTERFLY.get(), ButterflyRenderer::new);
+    }
+
+    private static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
+        event.registerLayerDefinition(ButterflyModel.LAYER_LOCATION, ButterflyModel::createBodyLayer);
     }
 }

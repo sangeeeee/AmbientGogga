@@ -1,0 +1,27 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:meadow",
+    "minecraft:windswept_forest",
+    {
+      "id": "terraincognita:ginkgo_grove",
+      "required": false
+    },
+    {
+      "id": "byg:canadian_shield",
+      "required": false
+    },
+    {
+      "id": "byg:skyris_vale",
+      "required": false
+    },
+    {
+      "id": "byg:black_forest",
+      "required": false
+    },
+    {
+      "id": "byg:guiana_shield",
+      "required": false
+    }
+  ]
+}
