@@ -72,11 +72,11 @@ public final class FireflyParticle extends TextureSheetParticle {
         this.steeringTicks = 0;
         this.gravity = 0.0F;
         this.friction = 0.985F;
-        this.hasPhysics = false;
+        this.hasPhysics = true;
         this.alpha = 0.0F;
 
         float warmth = this.random.nextFloat();
-        this.setColor(1.0F, 0.9F + warmth * 0.1F, 0.62F + warmth * 0.18F);
+        this.setColor(1.0F, 0.97F + warmth * 0.025F, 0.88F + warmth * 0.08F);
         this.pickSprite(sprites);
     }
 
@@ -108,12 +108,45 @@ public final class FireflyParticle extends TextureSheetParticle {
         this.xd += (desiredVelocityX - this.xd) * STEERING_FACTOR;
         this.yd += (desiredVelocityY - this.yd) * STEERING_FACTOR;
         this.zd += (desiredVelocityZ - this.zd) * STEERING_FACTOR;
-        this.move(this.xd, this.yd, this.zd);
+
+        double intendedX = this.xd;
+        double intendedY = this.yd;
+        double intendedZ = this.zd;
+        double previousX = this.x;
+        double previousY = this.y;
+        double previousZ = this.z;
+        this.move(intendedX, intendedY, intendedZ);
+
+        boolean collidedX = Math.abs((this.x - previousX) - intendedX) > 1.0E-5;
+        boolean collidedY = Math.abs((this.y - previousY) - intendedY) > 1.0E-5;
+        boolean collidedZ = Math.abs((this.z - previousZ) - intendedZ) > 1.0E-5;
+        if (collidedX || collidedY || collidedZ) {
+            redirectAfterCollision(collidedX, collidedY, collidedZ);
+        }
 
         this.xd *= this.friction;
         this.yd *= this.friction;
         this.zd *= this.friction;
         this.setSpriteFromAge(this.sprites);
+    }
+
+    private void redirectAfterCollision(boolean collidedX, boolean collidedY, boolean collidedZ) {
+        if (collidedX) {
+            this.xd = -this.xd * 0.35;
+            this.targetVelocityX = -this.targetVelocityX;
+        }
+        if (collidedY) {
+            this.yd = -this.yd * 0.30;
+            this.targetVelocityY = this.onGround
+                    ? randomBetween(0.004, 0.012)
+                    : -this.targetVelocityY;
+        }
+        if (collidedZ) {
+            this.zd = -this.zd * 0.35;
+            this.targetVelocityZ = -this.targetVelocityZ;
+        }
+
+        this.steeringTicks = 4 + this.random.nextInt(8);
     }
 
     private void updateGlow() {
