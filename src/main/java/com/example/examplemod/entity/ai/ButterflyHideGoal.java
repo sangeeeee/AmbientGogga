@@ -48,11 +48,14 @@ public final class ButterflyHideGoal extends MoveToBlockGoal {
 
     @Override
     public void start() {
-        super.start();
         this.waitingAtHideout = false;
         this.settleTicks = 0;
         this.foldedWaitTicks = 0;
+        if (this.butterfly.isLanded()) {
+            this.butterfly.setNotLanded();
+        }
         this.butterfly.setAtHideout(false);
+        super.start();
     }
 
     @Override
@@ -141,10 +144,10 @@ public final class ButterflyHideGoal extends MoveToBlockGoal {
         }
 
         this.holdAtHideout();
-        if (this.butterfly.getHideFoldProgress(this.butterfly.tickCount) <= 0.0F) {
+        if (!this.butterfly.areWingsFolded()) {
             this.settleTicks++;
             if (this.settleTicks >= SETTLE_TICKS && this.butterfly.getDeltaMovement().lengthSqr() < 1.0E-7D) {
-                this.butterfly.startHidingWingFold();
+                this.butterfly.setWingsFolded(true);
             }
             return;
         }

@@ -50,14 +50,14 @@ public final class ButterflyModel extends HierarchicalModel<Butterfly> {
             float netHeadYaw,
             float headPitch
     ) {
-        this.group.xRot = butterfly.isLanded() || butterfly.isAtHideout() ? 0.0F : -0.2618F;
+        this.group.xRot = butterfly.isResting() ? 0.0F : -0.2618F;
         float flyingWingAngle = Mth.lerp(
                 butterfly.getWingRotation(ageInTicks),
                 MIN_WING_ANGLE,
                 MAX_WING_ANGLE
         );
         float wingAngle = Mth.lerp(
-                butterfly.getHideFoldProgress(ageInTicks),
+                butterfly.getWingFoldProgress(ageInTicks),
                 flyingWingAngle,
                 FOLDED_WING_ANGLE
         );

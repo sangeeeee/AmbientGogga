@@ -33,7 +33,7 @@ public final class ButterflyRenderer extends MobRenderer<Butterfly, ButterflyMod
             float partialTick,
             float scale
     ) {
-        if (!butterfly.isLanded()) {
+        if (!butterfly.isResting()) {
             poseStack.translate(0.0D, 0.1F + Mth.sin(ageInTicks * 0.3F) * 0.1F, 0.0D);
         }
         super.setupRotations(butterfly, poseStack, ageInTicks, rotationYaw, partialTick, scale);

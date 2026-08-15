@@ -56,8 +56,8 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
             SynchedEntityData.defineId(Butterfly.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Boolean> AT_HIDEOUT =
             SynchedEntityData.defineId(Butterfly.class, EntityDataSerializers.BOOLEAN);
-    private static final EntityDataAccessor<Integer> HIDE_FOLD_START_TICK =
-            SynchedEntityData.defineId(Butterfly.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> WINGS_FOLDED =
+            SynchedEntityData.defineId(Butterfly.class, EntityDataSerializers.BOOLEAN);
 
     public static final Predicate<net.minecraft.world.entity.LivingEntity> SHOULD_AVOID = entity -> {
         if (!(entity instanceof Player player)) {
@@ -71,7 +71,8 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
     private int flyingTicks;
     private int underWaterTicks;
     private float wingRotation = 0.5F;
-    private float targetWingRotation = 0.5F;
+    private float previousWingFoldProgress;
+    private float wingFoldProgress;
     private ButterflyRestGoal restGoal;
 
     public Butterfly(EntityType<? extends Butterfly> entityType, Level level) {
@@ -119,7 +120,7 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
         builder.define(LANDED, false);
         builder.define(SIZE_MODIFIER, 0.7F);
         builder.define(AT_HIDEOUT, false);
-        builder.define(HIDE_FOLD_START_TICK, -1);
+        builder.define(WINGS_FOLDED, false);
     }
 
     @Override
@@ -200,6 +201,17 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
             }
             this.setDeltaMovement(this.getDeltaMovement().multiply(1.0D, 0.8D, 1.0D));
         }
+    }
+
+    @Override
+    public void tick() {
+        this.previousWingFoldProgress = this.wingFoldProgress;
+        super.tick();
+        this.wingFoldProgress = Mth.approach(
+                this.wingFoldProgress,
+                this.areWingsFolded() ? 1.0F : 0.0F,
+                0.25F
+        );
     }
 
     @Override
@@ -298,6 +310,11 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
 
     public void setLanded(boolean landed) {
         this.entityData.set(LANDED, landed);
+        if (landed) {
+            this.setWingsFolded(true);
+        } else if (!this.isAtHideout()) {
+            this.setWingsFolded(false);
+        }
     }
 
     public void setNotLanded() {
@@ -312,34 +329,30 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
 
     public void setAtHideout(boolean atHideout) {
         this.entityData.set(AT_HIDEOUT, atHideout);
-        if (!atHideout) {
-            this.entityData.set(HIDE_FOLD_START_TICK, -1);
+        if (!atHideout && !this.isLanded()) {
+            this.setWingsFolded(false);
         }
     }
 
-    public void startHidingWingFold() {
-        if (this.isAtHideout() && this.entityData.get(HIDE_FOLD_START_TICK) < 0) {
-            this.entityData.set(HIDE_FOLD_START_TICK, this.tickCount);
-        }
+    public boolean isResting() {
+        return this.isLanded() || this.isAtHideout();
     }
 
-    public float getHideFoldProgress(float ageInTicks) {
-        int foldStartTick = this.entityData.get(HIDE_FOLD_START_TICK);
-        if (!this.isAtHideout() || foldStartTick < 0) {
-            return 0.0F;
-        }
-        return Mth.clamp((ageInTicks - foldStartTick) / 4.0F, 0.0F, 1.0F);
+    public boolean areWingsFolded() {
+        return this.entityData.get(WINGS_FOLDED);
+    }
+
+    public void setWingsFolded(boolean folded) {
+        this.entityData.set(WINGS_FOLDED, folded);
+    }
+
+    public float getWingFoldProgress(float ageInTicks) {
+        float partialTick = Mth.clamp(ageInTicks - this.tickCount, 0.0F, 1.0F);
+        return Mth.lerp(partialTick, this.previousWingFoldProgress, this.wingFoldProgress);
     }
 
     public float getWingRotation(float ageInTicks) {
-        if (this.isLanded() && this.getDeltaMovement().lengthSqr() < 1.0E-7D) {
-            if (this.level().isDay() && this.getRandom().nextInt(100) == 0) {
-                this.targetWingRotation = this.getRandom().nextFloat();
-            }
-            this.wingRotation = Mth.lerp(0.05F, this.wingRotation, this.targetWingRotation);
-        } else {
-            this.wingRotation = Math.abs(Mth.sin(ageInTicks / 1.5F));
-        }
+        this.wingRotation = Math.abs(Mth.sin(ageInTicks / 1.5F));
         return this.wingRotation;
     }
 
