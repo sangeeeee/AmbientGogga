@@ -7,6 +7,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
@@ -28,9 +29,16 @@ public final class ButterflyRenderer extends MobRenderer<Butterfly, ButterflyMod
         boolean glowing
     ) {
         if (butterfly instanceof Shichieichou && bodyVisible) {
-            return RenderType.entityTranslucentEmissive(this.getTextureLocation(butterfly));
+            return RenderType.entityCutoutNoCull(this.getTextureLocation(butterfly));
         }
         return super.getRenderType(butterfly, bodyVisible, translucent, glowing);
+    }
+
+    @Override
+    protected int getBlockLightLevel(Butterfly butterfly, BlockPos pos) {
+        return butterfly instanceof Shichieichou
+                ? 15
+                : super.getBlockLightLevel(butterfly, pos);
     }
 
     @Override
