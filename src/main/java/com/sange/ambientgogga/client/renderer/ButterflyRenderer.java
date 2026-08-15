@@ -25,10 +25,10 @@ public final class ButterflyRenderer extends MobRenderer<Butterfly, ButterflyMod
             Butterfly butterfly,
             boolean bodyVisible,
             boolean translucent,
-            boolean glowing
+        boolean glowing
     ) {
         if (butterfly instanceof Shichieichou && bodyVisible) {
-            return RenderType.entityTranslucent(this.getTextureLocation(butterfly));
+            return RenderType.entityTranslucentEmissive(this.getTextureLocation(butterfly));
         }
         return super.getRenderType(butterfly, bodyVisible, translucent, glowing);
     }

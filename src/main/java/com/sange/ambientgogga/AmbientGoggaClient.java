@@ -2,6 +2,7 @@ package com.sange.ambientgogga;
 
 import com.sange.ambientgogga.client.model.ButterflyModel;
 import com.sange.ambientgogga.client.particle.FireflyParticle;
+import com.sange.ambientgogga.client.particle.ShichieichouTrailParticle;
 import com.sange.ambientgogga.client.renderer.ButterflyRenderer;
 import com.sange.ambientgogga.entity.ModEntities;
 import com.sange.ambientgogga.particle.ModParticles;
@@ -21,6 +22,7 @@ public class AmbientGoggaClient {
 
     private static void registerParticleProviders(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(ModParticles.FIREFLY.get(), FireflyParticle.Provider::new);
+        event.registerSpriteSet(ModParticles.SHICHIEICHOU_TRAIL.get(), ShichieichouTrailParticle.Provider::new);
     }
 
     private static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {

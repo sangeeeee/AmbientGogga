@@ -2,6 +2,7 @@ package com.sange.ambientgogga.entity;
 
 import com.sange.ambientgogga.AmbientGogga;
 import com.sange.ambientgogga.entity.ai.ShichieichouWanderGoal;
+import com.sange.ambientgogga.particle.ModParticles;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -12,6 +13,7 @@ import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 /** A rare nocturnal butterfly that never lands and briefly visits the overworld. */
@@ -56,6 +58,7 @@ public final class Shichieichou extends Butterfly {
     public void tick() {
         super.tick();
         if (this.level().isClientSide()) {
+            this.spawnTrailParticle();
             return;
         }
 
@@ -139,5 +142,26 @@ public final class Shichieichou extends Butterfly {
     private int randomLifetime() {
         return MIN_LIFETIME_TICKS
                 + this.getRandom().nextInt(MAX_LIFETIME_TICKS - MIN_LIFETIME_TICKS + 1);
+    }
+
+    private void spawnTrailParticle() {
+        Vec3 movement = this.getDeltaMovement();
+        if (movement.lengthSqr() < 1.0E-4D || this.getRandom().nextInt(5) != 0) {
+            return;
+        }
+
+        Vec3 trailOffset = movement.normalize().scale(-0.22D);
+        double spreadX = (this.getRandom().nextDouble() - 0.5D) * 0.12D;
+        double spreadY = (this.getRandom().nextDouble() - 0.5D) * 0.08D;
+        double spreadZ = (this.getRandom().nextDouble() - 0.5D) * 0.12D;
+        this.level().addParticle(
+                ModParticles.SHICHIEICHOU_TRAIL.get(),
+                this.getX() + trailOffset.x + spreadX,
+                this.getY() + this.getBbHeight() * 0.45D + trailOffset.y + spreadY,
+                this.getZ() + trailOffset.z + spreadZ,
+                -movement.x * 0.04D,
+                -movement.y * 0.04D + 0.002D + this.getRandom().nextDouble() * 0.004D,
+                -movement.z * 0.04D
+        );
     }
 }

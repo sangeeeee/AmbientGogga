@@ -15,6 +15,9 @@ public final class ModParticles {
     public static final DeferredHolder<ParticleType<?>, SimpleParticleType> FIREFLY =
             PARTICLE_TYPES.register("firefly", () -> new SimpleParticleType(true));
 
+    public static final DeferredHolder<ParticleType<?>, SimpleParticleType> SHICHIEICHOU_TRAIL =
+            PARTICLE_TYPES.register("shichieichou_trail", () -> new SimpleParticleType(false));
+
     private ModParticles() {
     }
 
