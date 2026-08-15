@@ -209,6 +209,7 @@ public final class ButterflyBottleItem extends Item {
             butterfly.setTired(false);
             butterfly.setLanded(false);
             butterfly.setAtHideout(false);
+            butterfly.setReleasedFromBottle(true);
             butterfly.moveTo(
                     butterflyPosition.x,
                     butterflyPosition.y,

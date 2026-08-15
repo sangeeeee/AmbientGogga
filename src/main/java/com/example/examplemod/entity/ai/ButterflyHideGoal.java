@@ -40,14 +40,17 @@ public final class ButterflyHideGoal extends MoveToBlockGoal {
 
     @Override
     public boolean canUse() {
-        return Butterfly.shouldHide(this.butterfly.level())
+        return !this.butterfly.wasReleasedFromBottle()
+                && Butterfly.shouldHide(this.butterfly.level())
                 && this.butterfly.getRandom().nextFloat() < HIDE_CHANCE
                 && super.canUse();
     }
 
     @Override
     public boolean canContinueToUse() {
-        if (!Butterfly.shouldHide(this.butterfly.level()) || this.butterfly.isRemoved()) {
+        if (this.butterfly.wasReleasedFromBottle()
+                || !Butterfly.shouldHide(this.butterfly.level())
+                || this.butterfly.isRemoved()) {
             return false;
         }
         return this.waitingAtHideout
@@ -85,7 +88,7 @@ public final class ButterflyHideGoal extends MoveToBlockGoal {
         this.cachedTargetValid = false;
         this.settleTicks = 0;
         this.foldedWaitTicks = 0;
-        if (Butterfly.shouldHide(this.butterfly.level())) {
+        if (!this.butterfly.wasReleasedFromBottle() && Butterfly.shouldHide(this.butterfly.level())) {
             this.nextStartTick = 0;
         }
     }

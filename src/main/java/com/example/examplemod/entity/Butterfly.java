@@ -54,6 +54,7 @@ import net.neoforged.neoforge.common.Tags;
 import org.jetbrains.annotations.Nullable;
 
 public final class Butterfly extends PathfinderMob implements FlyingAnimal {
+    private static final String RELEASED_FROM_BOTTLE_TAG = "ReleasedFromBottle";
     private static final EntityDataAccessor<Integer> VARIANT =
             SynchedEntityData.defineId(Butterfly.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> TIRED =
@@ -83,6 +84,7 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
     private float previousWingFoldProgress;
     private float wingFoldProgress;
     private ButterflyRestGoal restGoal;
+    private boolean releasedFromBottle;
 
     public Butterfly(EntityType<? extends Butterfly> entityType, Level level) {
         super(entityType, level);
@@ -176,6 +178,7 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
         tag.putBoolean("IsTired", this.isTired());
         tag.putBoolean("IsLanded", this.isLanded());
         tag.putFloat("SizeModifier", this.getSizeModifier());
+        tag.putBoolean(RELEASED_FROM_BOTTLE_TAG, this.wasReleasedFromBottle());
     }
 
     @Override
@@ -186,6 +189,7 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
         this.setLanded(tag.getBoolean("IsLanded"));
         float storedSize = tag.getFloat("SizeModifier");
         this.setSizeModifier(storedSize > 0.0F ? storedSize : this.getVariant().randomSize(this.getRandom()));
+        this.setReleasedFromBottle(tag.getBoolean(RELEASED_FROM_BOTTLE_TAG));
     }
 
     @Override
@@ -244,6 +248,11 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
     @Override
     protected InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack heldStack = player.getItemInHand(hand);
+        if (heldStack.getItem() instanceof ButterflyBottleItem butterflyBottle) {
+            // Mob's normal interaction path does not call Item#interactLivingEntity for
+            // arbitrary items, so explicitly forward filled-bottle interactions here.
+            return butterflyBottle.interactLivingEntity(heldStack, player, this, hand);
+        }
         if (!heldStack.is(Items.GLASS_BOTTLE)) {
             return super.mobInteract(player, hand);
         }
@@ -408,6 +417,14 @@ public final class Butterfly extends PathfinderMob implements FlyingAnimal {
 
     public ButterflyRestGoal getRestGoal() {
         return this.restGoal;
+    }
+
+    public boolean wasReleasedFromBottle() {
+        return this.releasedFromBottle;
+    }
+
+    public void setReleasedFromBottle(boolean releasedFromBottle) {
+        this.releasedFromBottle = releasedFromBottle;
     }
 
     public static boolean shouldHide(Level level) {
