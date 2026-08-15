@@ -24,10 +24,10 @@ public final class FireflySpawner {
     private static final int DEEP_NIGHT_START = 18_000;
     private static final int DAWN_START = 23_000;
     private static final double MAX_SPAWNS_PER_SECOND = 10.0;
-    private static final int LOCATION_ATTEMPTS = 8;
+    private static final int LOCATION_ATTEMPTS = 24;
     private static final double MIN_DISTANCE = 1.5;
     private static final double MAX_DISTANCE = 56.0;
-    private static final int VERTICAL_SEARCH_RADIUS = 24;
+    private static final int MAX_VERTICAL_DISTANCE = 30;
     private static final int MAX_HEIGHT_ABOVE_SOLID = 5;
 
     private static double spawnAccumulator;
@@ -116,48 +116,46 @@ public final class FireflySpawner {
             return false;
         }
 
-        int topY = Math.min(
-                player.getBlockY() + VERTICAL_SEARCH_RADIUS,
-                level.getMaxBuildHeight() - MAX_HEIGHT_ABOVE_SOLID - 1
-        );
-        int bottomY = Math.max(
-                player.getBlockY() - VERTICAL_SEARCH_RADIUS,
-                level.getMinBuildHeight()
-        );
-        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos(x, topY, z);
+        int halfVerticalRange = MAX_VERTICAL_DISTANCE / 2;
+        int verticalOffset = random.nextInt(MAX_VERTICAL_DISTANCE + 1) - halfVerticalRange
+                + random.nextInt(MAX_VERTICAL_DISTANCE + 1) - halfVerticalRange;
+        int y = player.getBlockY() + verticalOffset;
+        if (y < level.getMinBuildHeight() || y >= level.getMaxBuildHeight()) {
+            return false;
+        }
 
-        for (int groundY = topY; groundY >= bottomY; groundY--) {
-            cursor.setY(groundY);
-            BlockState groundState = level.getBlockState(cursor);
-            if (!groundState.getFluidState().isEmpty()
-                    || groundState.getCollisionShape(level, cursor).isEmpty()) {
-                continue;
-            }
+        BlockPos spawnPos = new BlockPos(x, y, z);
+        BlockState spawnState = level.getBlockState(spawnPos);
+        if (!spawnState.getFluidState().isEmpty()
+                || !spawnState.getCollisionShape(level, spawnPos).isEmpty()
+                || !level.canSeeSky(spawnPos)
+                || !hasSolidGroundNearby(level, spawnPos)) {
+            return false;
+        }
 
-            BlockPos groundPos = cursor.immutable();
-            int firstHeight = 1 + random.nextInt(MAX_HEIGHT_ABOVE_SOLID);
-            for (int offset = 0; offset < MAX_HEIGHT_ABOVE_SOLID; offset++) {
-                int height = 1 + (firstHeight - 1 + offset) % MAX_HEIGHT_ABOVE_SOLID;
-                BlockPos spawnPos = groundPos.above(height);
-                BlockState spawnState = level.getBlockState(spawnPos);
-                if (!spawnState.getFluidState().isEmpty()
-                        || !spawnState.getCollisionShape(level, spawnPos).isEmpty()
-                        || !level.canSeeSky(spawnPos)) {
-                    continue;
-                }
+        double spawnX = spawnPos.getX() + 0.15 + random.nextDouble() * 0.70;
+        double spawnY = spawnPos.getY() + 0.15 + random.nextDouble() * 0.70;
+        double spawnZ = spawnPos.getZ() + 0.15 + random.nextDouble() * 0.70;
+        double horizontalX = spawnX - player.getX();
+        double horizontalZ = spawnZ - player.getZ();
+        if (horizontalX * horizontalX + horizontalZ * horizontalZ > MAX_DISTANCE * MAX_DISTANCE
+                || Math.abs(spawnY - player.getY()) > MAX_VERTICAL_DISTANCE) {
+            return false;
+        }
 
-                double spawnX = spawnPos.getX() + 0.15 + random.nextDouble() * 0.70;
-                double spawnY = spawnPos.getY() + 0.15 + random.nextDouble() * 0.70;
-                double spawnZ = spawnPos.getZ() + 0.15 + random.nextDouble() * 0.70;
-                if (player.distanceToSqr(spawnX, spawnY, spawnZ) > MAX_DISTANCE * MAX_DISTANCE) {
-                    continue;
-                }
+        level.addParticle(ModParticles.FIREFLY.get(), spawnX, spawnY, spawnZ, 0.0, 0.0, 0.0);
+        return true;
+    }
 
-                level.addParticle(ModParticles.FIREFLY.get(), spawnX, spawnY, spawnZ, 0.0, 0.0, 0.0);
+    private static boolean hasSolidGroundNearby(ClientLevel level, BlockPos spawnPos) {
+        BlockPos.MutableBlockPos groundPos = spawnPos.mutable();
+        for (int distance = 1; distance <= MAX_HEIGHT_ABOVE_SOLID; distance++) {
+            groundPos.setY(spawnPos.getY() - distance);
+            BlockState groundState = level.getBlockState(groundPos);
+            if (groundState.getFluidState().isEmpty()
+                    && !groundState.getCollisionShape(level, groundPos).isEmpty()) {
                 return true;
             }
-
-            return false;
         }
 
         return false;
