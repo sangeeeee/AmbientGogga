@@ -4,6 +4,7 @@ import com.sange.ambientgogga.client.model.ButterflyModel;
 import com.sange.ambientgogga.client.particle.FireflyParticle;
 import com.sange.ambientgogga.client.particle.ShichieichouTrailParticle;
 import com.sange.ambientgogga.client.renderer.ButterflyRenderer;
+import com.sange.ambientgogga.client.renderer.ShichieichouRenderer;
 import com.sange.ambientgogga.entity.ModEntities;
 import com.sange.ambientgogga.particle.ModParticles;
 import net.neoforged.api.distmarker.Dist;
@@ -27,10 +28,14 @@ public class AmbientGoggaClient {
 
     private static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ModEntities.BUTTERFLY.get(), ButterflyRenderer::new);
-        event.registerEntityRenderer(ModEntities.SHICHIEICHOU.get(), ButterflyRenderer::new);
+        event.registerEntityRenderer(ModEntities.SHICHIEICHOU.get(), ShichieichouRenderer::new);
     }
 
     private static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
         event.registerLayerDefinition(ButterflyModel.LAYER_LOCATION, ButterflyModel::createBodyLayer);
+        event.registerLayerDefinition(
+                ButterflyModel.SHICHIEICHOU_LAYER_LOCATION,
+                ButterflyModel::createShichieichouLayer
+        );
     }
 }

@@ -8,12 +8,17 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
-public final class ButterflyRenderer extends MobRenderer<Butterfly, ButterflyModel> {
+public class ButterflyRenderer extends MobRenderer<Butterfly, ButterflyModel> {
     public ButterflyRenderer(EntityRendererProvider.Context context) {
-        super(context, new ButterflyModel(context.bakeLayer(ButterflyModel.LAYER_LOCATION)), 0.2F);
+        this(context, ButterflyModel.LAYER_LOCATION);
+    }
+
+    protected ButterflyRenderer(EntityRendererProvider.Context context, ModelLayerLocation layer) {
+        super(context, new ButterflyModel(context.bakeLayer(layer)), 0.2F);
     }
 
     @Override
@@ -26,7 +31,7 @@ public final class ButterflyRenderer extends MobRenderer<Butterfly, ButterflyMod
             Butterfly butterfly,
             boolean bodyVisible,
             boolean translucent,
-        boolean glowing
+            boolean glowing
     ) {
         if (butterfly instanceof Shichieichou && bodyVisible) {
             return RenderType.entityCutoutNoCull(this.getTextureLocation(butterfly));
