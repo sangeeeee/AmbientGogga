@@ -29,6 +29,11 @@ public class AmbientGogga {
             () -> new SpawnEggItem(ModEntities.BUTTERFLY.get(), 12_594_947, 987_158, new Item.Properties())
     );
 
+    public static final DeferredItem<Item> SHICHIEICHOU_MEMORY = ITEMS.register(
+            "shichieichou_memory",
+            () -> new Item(new Item.Properties())
+    );
+
     public AmbientGogga(IEventBus modEventBus) {
         ITEMS.register(modEventBus);
         ModParticles.register(modEventBus);

@@ -1,6 +1,7 @@
 package com.sange.ambientgogga.item;
 
 import com.sange.ambientgogga.AmbientGogga;
+import com.sange.ambientgogga.advancement.ModAdvancements;
 import com.sange.ambientgogga.entity.Butterfly;
 import com.sange.ambientgogga.entity.ButterflyVariant;
 import com.sange.ambientgogga.entity.ModEntities;
@@ -15,6 +16,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -121,6 +123,9 @@ public final class ButterflyBottleItem extends Item {
                 0.7F,
                 1.25F
         );
+        if (butterfly instanceof Shichieichou && player instanceof ServerPlayer serverPlayer) {
+            ModAdvancements.awardPocketAMemory(serverPlayer);
+        }
         butterfly.discard();
         return InteractionResult.SUCCESS;
     }

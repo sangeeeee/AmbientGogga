@@ -1,0 +1,31 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "croptopia"
+    }
+  ],
+  "parent": "minecraft:adventure/root",
+  "display": {
+    "icon": {
+      "count": 1,
+      "id": "croptopia:butter"
+    },
+    "title": {
+      "translate": "advancements.ambientgogga.butter_fly.title"
+    },
+    "description": {
+      "translate": "advancements.ambientgogga.butter_fly.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": true
+  },
+  "criteria": {
+    "triggered": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "sends_telemetry_event": false
+}

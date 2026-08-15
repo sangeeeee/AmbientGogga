@@ -17,5 +17,10 @@
   "entity.ambientgogga.butterfly.ringlet": "Ringlet",
   "entity.ambientgogga.butterfly.swallowtail": "Swallowtail",
   "entity.ambientgogga.butterfly.mourning_cloak": "Mourning Cloak",
-  "entity.ambientgogga.shichieichou": "Shichieichou"
+  "entity.ambientgogga.shichieichou": "Shichieichou",
+  "item.ambientgogga.shichieichou_memory": "Shichieichou Memory",
+  "advancements.ambientgogga.butter_fly.title": "Butter Fly?",
+  "advancements.ambientgogga.butter_fly.description": "Get a surprisingly buttery reward from a butterfly.",
+  "advancements.ambientgogga.pocket_a_memory.title": "Pocket a Memory",
+  "advancements.ambientgogga.pocket_a_memory.description": "Capture a Shichieichou in a bottle for the first time."
 }

@@ -1,5 +1,6 @@
 package com.sange.ambientgogga.entity;
 
+import com.sange.ambientgogga.advancement.ModAdvancements;
 import com.sange.ambientgogga.entity.ai.ButterflyLandOnFlowerGoal;
 import com.sange.ambientgogga.entity.ai.ButterflyAvoidPlayerGoal;
 import com.sange.ambientgogga.entity.ai.ButterflyHideGoal;
@@ -18,6 +19,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.sounds.SoundEvent;
@@ -295,6 +297,9 @@ public class Butterfly extends PathfinderMob implements FlyingAnimal {
                 0.7F,
                 1.25F
         );
+        if (this instanceof Shichieichou && player instanceof ServerPlayer serverPlayer) {
+            ModAdvancements.awardPocketAMemory(serverPlayer);
+        }
         this.discard();
         return InteractionResult.SUCCESS;
     }
@@ -357,7 +362,10 @@ public class Butterfly extends PathfinderMob implements FlyingAnimal {
                     BUTTER_DROP_CHANCE + BUTTER_DROP_CHANCE_PER_LOOTING_LEVEL * lootingLevel
             );
             if (this.getRandom().nextFloat() < dropChance) {
-                this.spawnAtLocation(new ItemStack(butter));
+                if (this.spawnAtLocation(new ItemStack(butter)) != null
+                        && damageSource.getEntity() instanceof ServerPlayer serverPlayer) {
+                    ModAdvancements.awardButterFly(serverPlayer);
+                }
             }
         });
     }
