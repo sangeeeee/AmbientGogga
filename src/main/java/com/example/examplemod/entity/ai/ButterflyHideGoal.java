@@ -9,13 +9,14 @@ import net.minecraft.world.level.block.DoublePlantBlock;
 import net.minecraft.world.level.block.GrassBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 /** Makes butterflies seek ground cover and leave the world without dying during unsafe conditions. */
 public final class ButterflyHideGoal extends MoveToBlockGoal {
     private static final float HIDE_CHANCE = 0.90F;
-    private static final double GRASS_CONTACT_MARGIN = 0.15D;
+    private static final double FINAL_APPROACH_SPEED = 0.18D;
+    private static final double FINAL_APPROACH_DISTANCE_SQR = 0.01D;
+    private static final int MAX_FINAL_APPROACH_TICKS = 40;
     private static final int SETTLE_TICKS = 2;
     private static final int FOLDED_WAIT_TICKS = 20;
     private static final int TARGET_VALIDATION_INTERVAL = 5;
@@ -26,6 +27,8 @@ public final class ButterflyHideGoal extends MoveToBlockGoal {
     private boolean targetIsGrassPlant;
     private int nextTargetValidationTick;
     private Vec3 cachedHideoutPosition = Vec3.ZERO;
+    private boolean finalApproach;
+    private int finalApproachTicks;
     private boolean waitingAtHideout;
     private int settleTicks;
     private int foldedWaitTicks;
@@ -55,6 +58,8 @@ public final class ButterflyHideGoal extends MoveToBlockGoal {
     @Override
     public void start() {
         this.waitingAtHideout = false;
+        this.finalApproach = false;
+        this.finalApproachTicks = 0;
         this.settleTicks = 0;
         this.foldedWaitTicks = 0;
         if (this.butterfly.isLanded()) {
@@ -74,6 +79,8 @@ public final class ButterflyHideGoal extends MoveToBlockGoal {
             this.butterfly.setNoGravity(false);
         }
         this.waitingAtHideout = false;
+        this.finalApproach = false;
+        this.finalApproachTicks = 0;
         this.targetActive = false;
         this.cachedTargetValid = false;
         this.settleTicks = 0;
@@ -133,20 +140,63 @@ public final class ButterflyHideGoal extends MoveToBlockGoal {
             this.tickAtHideout();
             return;
         }
+        if (this.finalApproach) {
+            this.tickFinalApproach();
+            return;
+        }
 
         super.tick();
-        if (this.isReachedTarget() || this.isTouchingTarget()) {
-            this.beginWaitingAtHideout();
+        if (this.isReachedTarget()) {
+            this.beginFinalApproach();
         }
+    }
+
+    private void beginFinalApproach() {
+        if (!this.isCurrentTargetValid(this.butterfly.level(), true)) {
+            this.abortCurrentTarget();
+            return;
+        }
+
+        this.finalApproach = true;
+        this.finalApproachTicks = 0;
+        this.butterfly.getNavigation().stop();
+        this.butterfly.setDeltaMovement(this.butterfly.getDeltaMovement().scale(0.35D));
+        this.tickFinalApproach();
+    }
+
+    private void tickFinalApproach() {
+        if (!this.isCurrentTargetValid(this.butterfly.level(), false)) {
+            this.abortCurrentTarget();
+            return;
+        }
+        if (this.butterfly.position().distanceToSqr(this.cachedHideoutPosition) <= FINAL_APPROACH_DISTANCE_SQR) {
+            this.beginWaitingAtHideout();
+            return;
+        }
+        if (++this.finalApproachTicks > MAX_FINAL_APPROACH_TICKS) {
+            this.abortCurrentTarget();
+            return;
+        }
+
+        this.butterfly.getNavigation().stop();
+        this.butterfly.getMoveControl().setWantedPosition(
+                this.cachedHideoutPosition.x,
+                this.cachedHideoutPosition.y,
+                this.cachedHideoutPosition.z,
+                FINAL_APPROACH_SPEED
+        );
     }
 
     private void beginWaitingAtHideout() {
         if (!this.isCurrentTargetValid(this.butterfly.level(), true)) {
-            this.butterfly.getNavigation().stop();
-            this.nextStartTick = 0;
+            this.abortCurrentTarget();
+            return;
+        }
+        if (this.butterfly.position().distanceToSqr(this.cachedHideoutPosition) > FINAL_APPROACH_DISTANCE_SQR) {
             return;
         }
 
+        this.finalApproach = false;
         this.waitingAtHideout = true;
         this.settleTicks = 0;
         this.foldedWaitTicks = 0;
@@ -223,9 +273,12 @@ public final class ButterflyHideGoal extends MoveToBlockGoal {
         return this.cachedTargetValid;
     }
 
-    private boolean isTouchingTarget() {
-        AABB contactBox = this.butterfly.getBoundingBox().inflate(GRASS_CONTACT_MARGIN);
-        return contactBox.intersects(new AABB(this.blockPos));
+    private void abortCurrentTarget() {
+        this.butterfly.getNavigation().stop();
+        this.finalApproach = false;
+        this.finalApproachTicks = 0;
+        this.cachedTargetValid = false;
+        this.nextStartTick = 0;
     }
 
     private static boolean isGrassPlant(BlockState state) {

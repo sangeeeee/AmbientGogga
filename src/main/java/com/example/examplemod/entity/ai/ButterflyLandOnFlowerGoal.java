@@ -16,6 +16,9 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
     private static final float DAYTIME_FLOWER_INTEREST = 0.35F;
+    private static final double FINAL_APPROACH_SPEED = 0.18D;
+    private static final double FINAL_APPROACH_DISTANCE_SQR = 0.01D;
+    private static final int MAX_FINAL_APPROACH_TICKS = 40;
     private static final int TARGET_VALIDATION_INTERVAL = 5;
 
     private final Butterfly butterfly;
@@ -24,6 +27,9 @@ public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
     private boolean targetActive;
     private boolean cachedTargetValid;
     private int nextTargetValidationTick;
+    private Vec3 cachedLandingPosition = Vec3.ZERO;
+    private boolean finalApproach;
+    private int finalApproachTicks;
 
     public ButterflyLandOnFlowerGoal(Butterfly butterfly, double speed, int searchRadius) {
         super(butterfly, speed, searchRadius);
@@ -71,6 +77,8 @@ public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
 
     @Override
     public void start() {
+        this.finalApproach = false;
+        this.finalApproachTicks = 0;
         this.targetActive = true;
         this.refreshTargetCache(this.butterfly.level());
         super.start();
@@ -83,6 +91,8 @@ public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
         this.voluntaryVisit = false;
         this.targetActive = false;
         this.cachedTargetValid = false;
+        this.finalApproach = false;
+        this.finalApproachTicks = 0;
         if (targetInvalid) {
             this.nextStartTick = 0;
         }
@@ -124,19 +134,87 @@ public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
 
     @Override
     public void tick() {
+        if (this.finalApproach) {
+            this.tickFinalApproach();
+            return;
+        }
+
         super.tick();
         if (!this.isReachedTarget()) {
             return;
         }
+        this.beginFinalApproach();
+    }
+
+    private void beginFinalApproach() {
         if (!this.isCurrentTargetValid(this.butterfly.level(), true)) {
-            this.butterfly.getNavigation().stop();
-            this.nextStartTick = 0;
+            this.abortCurrentTarget();
             return;
         }
 
-        BlockState state = this.butterfly.level().getBlockState(this.blockPos);
-        VoxelShape shape = state.getShape(this.butterfly.level(), this.blockPos);
+        this.finalApproach = true;
+        this.finalApproachTicks = 0;
+        this.butterfly.getNavigation().stop();
+        this.butterfly.setDeltaMovement(this.butterfly.getDeltaMovement().scale(0.35D));
+        this.tickFinalApproach();
+    }
+
+    private void tickFinalApproach() {
+        if (!this.isCurrentTargetValid(this.butterfly.level(), false)) {
+            this.abortCurrentTarget();
+            return;
+        }
+        if (this.butterfly.position().distanceToSqr(this.cachedLandingPosition) <= FINAL_APPROACH_DISTANCE_SQR) {
+            this.completeLanding();
+            return;
+        }
+        if (++this.finalApproachTicks > MAX_FINAL_APPROACH_TICKS) {
+            this.abortCurrentTarget();
+            return;
+        }
+
+        this.butterfly.getNavigation().stop();
+        this.butterfly.getMoveControl().setWantedPosition(
+                this.cachedLandingPosition.x,
+                this.cachedLandingPosition.y,
+                this.cachedLandingPosition.z,
+                FINAL_APPROACH_SPEED
+        );
+    }
+
+    private void completeLanding() {
+        if (!this.isCurrentTargetValid(this.butterfly.level(), true)) {
+            this.abortCurrentTarget();
+            return;
+        }
+        if (this.butterfly.position().distanceToSqr(this.cachedLandingPosition) > FINAL_APPROACH_DISTANCE_SQR) {
+            return;
+        }
+
+        this.finalApproach = false;
+        this.butterfly.setLanded(true);
+        if (this.voluntaryVisit) {
+            this.butterfly.setTired(true);
+        }
+        this.butterfly.setPos(
+                this.cachedLandingPosition.x,
+                this.cachedLandingPosition.y,
+                this.cachedLandingPosition.z
+        );
+        this.butterfly.setDeltaMovement(Vec3.ZERO);
+    }
+
+    private void refreshTargetCache(LevelReader level) {
+        this.cachedTargetValid = this.isTargetStateValid(level, this.blockPos);
+        this.nextTargetValidationTick = this.butterfly.tickCount + TARGET_VALIDATION_INTERVAL;
+        if (!this.cachedTargetValid) {
+            return;
+        }
+
+        BlockState state = level.getBlockState(this.blockPos);
+        VoxelShape shape = state.getShape(level, this.blockPos);
         if (shape.isEmpty()) {
+            this.cachedTargetValid = false;
             return;
         }
 
@@ -149,18 +227,7 @@ public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
         } else if (state.getBlock() instanceof TallFlowerBlock) {
             y -= 0.25D;
         }
-
-        this.butterfly.setLanded(true);
-        if (this.voluntaryVisit) {
-            this.butterfly.setTired(true);
-        }
-        this.butterfly.setPos(x, y, z);
-        this.butterfly.setDeltaMovement(Vec3.ZERO);
-    }
-
-    private void refreshTargetCache(LevelReader level) {
-        this.cachedTargetValid = this.isTargetStateValid(level, this.blockPos);
-        this.nextTargetValidationTick = this.butterfly.tickCount + TARGET_VALIDATION_INTERVAL;
+        this.cachedLandingPosition = new Vec3(x, y, z);
     }
 
     private boolean isCurrentTargetValid(LevelReader level, boolean force) {
@@ -168,5 +235,13 @@ public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
             this.refreshTargetCache(level);
         }
         return this.cachedTargetValid;
+    }
+
+    private void abortCurrentTarget() {
+        this.butterfly.getNavigation().stop();
+        this.finalApproach = false;
+        this.finalApproachTicks = 0;
+        this.cachedTargetValid = false;
+        this.nextStartTick = 0;
     }
 }
