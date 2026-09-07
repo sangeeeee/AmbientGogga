@@ -1,6 +1,7 @@
 package com.sange.ambientgogga;
 
 import com.sange.ambientgogga.client.model.ButterflyModel;
+import com.sange.ambientgogga.client.ShichieichouClientConfig;
 import com.sange.ambientgogga.client.particle.FireflyParticle;
 import com.sange.ambientgogga.client.particle.ShichieichouTrailParticle;
 import com.sange.ambientgogga.client.renderer.ButterflyRenderer;
@@ -10,12 +11,15 @@ import com.sange.ambientgogga.particle.ModParticles;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 
 @Mod(value = AmbientGogga.MODID, dist = Dist.CLIENT)
 public class AmbientGoggaClient {
-    public AmbientGoggaClient(IEventBus modEventBus) {
+    public AmbientGoggaClient(IEventBus modEventBus, ModContainer container) {
+        container.registerConfig(ModConfig.Type.CLIENT, ShichieichouClientConfig.SPEC);
         modEventBus.addListener(AmbientGoggaClient::registerParticleProviders);
         modEventBus.addListener(AmbientGoggaClient::registerEntityRenderers);
         modEventBus.addListener(AmbientGoggaClient::registerLayerDefinitions);
@@ -33,9 +37,5 @@ public class AmbientGoggaClient {
 
     private static void registerLayerDefinitions(EntityRenderersEvent.RegisterLayerDefinitions event) {
         event.registerLayerDefinition(ButterflyModel.LAYER_LOCATION, ButterflyModel::createBodyLayer);
-        event.registerLayerDefinition(
-                ButterflyModel.SHICHIEICHOU_LAYER_LOCATION,
-                ButterflyModel::createShichieichouLayer
-        );
     }
 }

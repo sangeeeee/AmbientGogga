@@ -2,7 +2,7 @@ package com.sange.ambientgogga.entity;
 
 import com.sange.ambientgogga.AmbientGogga;
 import com.sange.ambientgogga.entity.ai.ShichieichouWanderGoal;
-import com.sange.ambientgogga.particle.ModParticles;
+import com.sange.ambientgogga.client.ShichieichouTrailEmitter;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
@@ -31,6 +31,7 @@ public final class Shichieichou extends Butterfly {
     private boolean restrictionInitialized;
     private boolean naturalDespawnFadeRequested;
     private float clientFadeProgress;
+    private Vec3 clientFlightMovement = Vec3.ZERO;
 
     public Shichieichou(EntityType<? extends Shichieichou> entityType, Level level) {
         super(entityType, level);
@@ -59,9 +60,13 @@ public final class Shichieichou extends Butterfly {
 
     @Override
     public void tick() {
+        Vec3 previousPosition = this.position();
         super.tick();
         if (this.level().isClientSide()) {
-            this.spawnTrailParticle();
+            Vec3 step = this.position().subtract(previousPosition);
+            this.clientFlightMovement = step.lengthSqr() > 1.0D
+                    ? Vec3.ZERO : this.clientFlightMovement.lerp(step, 0.25D);
+            ShichieichouTrailEmitter.emit(this, step);
             return;
         }
 
@@ -104,7 +109,11 @@ public final class Shichieichou extends Butterfly {
 
     @Override
     public float getWingRotation(float ageInTicks) {
-        return Math.abs(Mth.sin(ageInTicks / 6.4F));
+        return 0.5F + 0.5F * Mth.sin(ageInTicks * 0.175F);
+    }
+
+    public Vec3 getClientFlightMovement() {
+        return this.clientFlightMovement;
     }
 
     public boolean shouldPlayNaturalDespawnFade() {
@@ -175,24 +184,4 @@ public final class Shichieichou extends Butterfly {
                 + this.getRandom().nextInt(MAX_LIFETIME_TICKS - MIN_LIFETIME_TICKS + 1);
     }
 
-    private void spawnTrailParticle() {
-        Vec3 movement = this.getDeltaMovement();
-        if (movement.lengthSqr() < 1.0E-4D || this.getRandom().nextInt(5) != 0) {
-            return;
-        }
-
-        Vec3 trailOffset = movement.normalize().scale(-0.22D);
-        double spreadX = (this.getRandom().nextDouble() - 0.5D) * 0.12D;
-        double spreadY = (this.getRandom().nextDouble() - 0.5D) * 0.08D;
-        double spreadZ = (this.getRandom().nextDouble() - 0.5D) * 0.12D;
-        this.level().addParticle(
-                ModParticles.SHICHIEICHOU_TRAIL.get(),
-                this.getX() + trailOffset.x + spreadX,
-                this.getY() + this.getBbHeight() * 0.45D + trailOffset.y + spreadY,
-                this.getZ() + trailOffset.z + spreadZ,
-                -movement.x * 0.04D,
-                -movement.y * 0.04D + 0.002D + this.getRandom().nextDouble() * 0.004D,
-                -movement.z * 0.04D
-        );
-    }
 }

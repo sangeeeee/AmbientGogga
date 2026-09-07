@@ -1,5 +1,7 @@
 {
   "textures": [
-    "minecraft:glow"
+    "minecraft:generic_3",
+    "minecraft:generic_3",
+    "minecraft:spark_1"
   ]
 }

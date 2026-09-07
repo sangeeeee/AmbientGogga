@@ -1,11 +1,7 @@
 package com.sange.ambientgogga.client.model;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.sange.ambientgogga.AmbientGogga;
 import com.sange.ambientgogga.entity.Butterfly;
-import com.sange.ambientgogga.entity.Shichieichou;
-import java.util.Set;
 import net.minecraft.client.model.HierarchicalModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
@@ -14,9 +10,7 @@ import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
-import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 
 public final class ButterflyModel extends HierarchicalModel<Butterfly> {
@@ -24,21 +18,14 @@ public final class ButterflyModel extends HierarchicalModel<Butterfly> {
             ResourceLocation.fromNamespaceAndPath(AmbientGogga.MODID, "butterfly"),
             "main"
     );
-    public static final ModelLayerLocation SHICHIEICHOU_LAYER_LOCATION = new ModelLayerLocation(
-            ResourceLocation.fromNamespaceAndPath(AmbientGogga.MODID, "shichieichou"),
-            "main"
-    );
-
     private static final float MIN_WING_ANGLE = (float) (Math.PI / 5.0D);
     private static final float MAX_WING_ANGLE = (float) (Math.PI * 4.0D / 5.0D);
-    private static final float SHICHIEICHOU_MIN_WING_ANGLE = (float) (Math.PI / 15.0D);
     private static final float FOLDED_WING_ANGLE = 0.05F;
 
     private final ModelPart root;
     private final ModelPart group;
     private final ModelPart leftWing;
     private final ModelPart rightWing;
-    private float renderAlpha = 1.0F;
 
     public ButterflyModel(ModelPart root) {
         this.root = root;
@@ -62,16 +49,10 @@ public final class ButterflyModel extends HierarchicalModel<Butterfly> {
             float netHeadYaw,
             float headPitch
     ) {
-        this.renderAlpha = butterfly instanceof Shichieichou shichieichou
-                ? shichieichou.getClientFadeAlpha()
-                : 1.0F;
         this.group.xRot = butterfly.isResting() ? 0.0F : -0.2618F;
-        float minimumWingAngle = butterfly instanceof Shichieichou
-                ? SHICHIEICHOU_MIN_WING_ANGLE
-                : MIN_WING_ANGLE;
         float flyingWingAngle = Mth.lerp(
                 butterfly.getWingRotation(ageInTicks),
-                minimumWingAngle,
+                MIN_WING_ANGLE,
                 MAX_WING_ANGLE
         );
         float wingAngle = Mth.lerp(
@@ -81,28 +62,6 @@ public final class ButterflyModel extends HierarchicalModel<Butterfly> {
         );
         this.leftWing.zRot = wingAngle;
         this.rightWing.zRot = -wingAngle;
-    }
-
-    @Override
-    public void renderToBuffer(
-            PoseStack poseStack,
-            VertexConsumer buffer,
-            int packedLight,
-            int packedOverlay,
-            int color
-    ) {
-        int alpha = Mth.clamp(
-                Math.round(FastColor.ARGB32.alpha(color) * this.renderAlpha),
-                0,
-                255
-        );
-        super.renderToBuffer(
-                poseStack,
-                buffer,
-                packedLight,
-                packedOverlay,
-                FastColor.ARGB32.color(alpha, color)
-        );
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -141,72 +100,4 @@ public final class ButterflyModel extends HierarchicalModel<Butterfly> {
         return LayerDefinition.create(mesh, 64, 64);
     }
 
-    public static LayerDefinition createShichieichouLayer() {
-        MeshDefinition mesh = new MeshDefinition();
-        PartDefinition root = mesh.getRoot();
-        PartDefinition group = root.addOrReplaceChild("group", CubeListBuilder.create(), PartPose.ZERO);
-        PartDefinition body = group.addOrReplaceChild(
-                "body",
-                CubeListBuilder.create(),
-                PartPose.offsetAndRotation(0.0F, 24.0F, 0.0F, 0.0F, 0.0F, 0.0F)
-        );
-        PartDefinition anatomy = body.addOrReplaceChild(
-                "anatomy",
-                CubeListBuilder.create(),
-                PartPose.offset(0.0F, 0.0F, -3.9F)
-        );
-        anatomy.addOrReplaceChild(
-                "thorax",
-                CubeListBuilder.create()
-                        .texOffs(0, 0)
-                        .addBox(-0.35F, -0.65F, 0.375F, 0.7F, 0.7F, 1.0F),
-                PartPose.ZERO
-        );
-        anatomy.addOrReplaceChild(
-                "abdomen",
-                CubeListBuilder.create()
-                        .texOffs(0, 4)
-                        .addBox(-0.23F, -0.53F, 1.25F, 0.46F, 0.46F, 2.375F),
-                PartPose.ZERO
-        );
-        anatomy.addOrReplaceChild(
-                "antennae",
-                CubeListBuilder.create()
-                        .texOffs(29, 11)
-                        .addBox(-3.0F, -4.0F, 0.0F, 6.0F, 4.0F, 0.0F),
-                PartPose.offsetAndRotation(0.0F, -0.4F, 0.4F, 1.0472F, 0.0F, 0.0F)
-        );
-        body.addOrReplaceChild(
-                "leftWing",
-                CubeListBuilder.create()
-                        .texOffs(8, 11)
-                        .addBox(
-                                0.0F,
-                                -7.0F,
-                                0.0F,
-                                0.0F,
-                                13.0F,
-                                8.0F,
-                                Set.of(Direction.WEST)
-                        ),
-                PartPose.offsetAndRotation(0.3F, -0.5F, 2.0F, 1.5708F, 0.0F, 0.7854F)
-        );
-        body.addOrReplaceChild(
-                "rightWing",
-                CubeListBuilder.create()
-                        .texOffs(8, 11)
-                        .mirror()
-                        .addBox(
-                                0.0F,
-                                -7.0F,
-                                0.0F,
-                                0.0F,
-                                13.0F,
-                                8.0F,
-                                Set.of(Direction.WEST)
-                        ),
-                PartPose.offsetAndRotation(-0.3F, -0.5F, 2.0F, 1.5708F, 0.0F, -0.7854F)
-        );
-        return LayerDefinition.create(mesh, 64, 64);
-    }
 }

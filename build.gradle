@@ -193,6 +193,24 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
 }
 
+// Pure geometry checks need no game window or additional test dependency.
+sourceSets {
+    animationTest {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+
+tasks.register('verifyShichieichouAnimation', JavaExec) {
+    dependsOn tasks.named('animationTestClasses')
+    classpath = sourceSets.animationTest.runtimeClasspath
+    mainClass = 'com.sange.ambientgogga.client.model.ShichieichouAnimationTest'
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('verifyShichieichouAnimation')
+}
+
 tasks.named('jar', Jar).configure {
     from('LICENSE') {
         into 'META-INF'

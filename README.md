@@ -7,12 +7,15 @@ Ambient Gogga（氛围小虫）is a NeoForge mod for Minecraft 1.21.1 that adds 
 - Fireflies appear as lightweight client-side particles at night.
 - Butterflies spawn naturally in suitable biomes, fly through the environment, rest on flowers, and react to players and weather.
 - Up to three butterflies can be captured in one butterfly bottle and released together while preserving their variants.
+- Shichieichou has compact pixel-art wings, one hanging tail per side, rounded anatomy and curved antennae, a slower broad wing stroke, and fine sparkling dust. See [the visual rework notes](docs/shichieichou-rework.md) for settings and verification.
 
 ## Requirements
 
 - Minecraft 1.21.1
 - NeoForge 21.1 or newer
 - Java 21
+
+Shichieichou uses 256-pixel wing and 64-pixel body textures with the standard renderer; Sodium and external animation/modeling software are not required.
 
 ## Credits and third-party resources
 

@@ -8,4 +8,8 @@ Ambient Gogga's firefly feature was informed by and inspired by [Illuminations](
 
 Ambient Gogga's butterfly feature was informed by [Terra Incognita: The Unknown Land](https://www.curseforge.com/minecraft/mc-mods/terraincognita), created by **azmalent**.
 
-The butterfly entity textures in `src/main/resources/assets/ambientgogga/textures/entity/butterfly/` originate from the older Minecraft 1.18.2 release of Terra Incognita. These third-party textures are not covered by Ambient Gogga's MIT license. Terra Incognita is published under the GNU General Public License version 3 (GPL-3.0); redistribution and modification of those resources remain subject to the upstream license and attribution requirements.
+The pre-existing butterfly entity textures in `src/main/resources/assets/ambientgogga/textures/entity/butterfly/` retain their original attribution to the older Minecraft 1.18.2 release of Terra Incognita. These third-party textures are not covered by Ambient Gogga's MIT license. Terra Incognita is published under the GNU General Public License version 3 (GPL-3.0); redistribution and modification of those resources remain subject to the upstream license and attribution requirements.
+
+## Shichieichou visual rework
+
+The redesigned `shichieichou.png` wing texture was created with imagegen using the existing texture and user-supplied concept references, then processed locally for transparency and the requested 256-pixel limit. `shichieichou_anatomy.png` is a newly generated 64-pixel material for the rounded body and curved antennae. Reference and generation details are recorded in `docs/shichieichou-art.md`; the external concept image and animation are not bundled in the mod.
