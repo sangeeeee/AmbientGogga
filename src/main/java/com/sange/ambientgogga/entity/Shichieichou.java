@@ -2,6 +2,7 @@ package com.sange.ambientgogga.entity;
 
 import com.sange.ambientgogga.AmbientGogga;
 import com.sange.ambientgogga.entity.ai.ShichieichouWanderGoal;
+import com.sange.ambientgogga.entity.ai.ShichieichouMoveControl;
 import com.sange.ambientgogga.client.ShichieichouTrailEmitter;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -9,6 +10,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.level.Level;
@@ -35,14 +37,42 @@ public final class Shichieichou extends Butterfly {
 
     public Shichieichou(EntityType<? extends Shichieichou> entityType, Level level) {
         super(entityType, level);
+        this.moveControl = new ShichieichouMoveControl(this);
         this.remainingLifetimeTicks = this.randomLifetime();
         this.setSizeModifier(0.9F);
     }
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(0, new ShichieichouWanderGoal(this));
-        this.goalSelector.addGoal(1, new FloatGoal(this));
+        this.goalSelector.addGoal(0, new FloatGoal(this));
+        this.goalSelector.addGoal(1, new ShichieichouWanderGoal(this));
+    }
+
+    @Override
+    public void travel(Vec3 input) {
+        if (this.isNoAi() || this.isInWaterOrBubble() || this.isInLava() || this.isDeadOrDying()) {
+            super.travel(input);
+            return;
+        }
+        if (this.isControlledByLocalInstance()) {
+            // Use the controller's velocity once: ground friction/forward input
+            // from LivingEntity.travel would otherwise distort the smooth arcs.
+            this.move(MoverType.SELF, this.getDeltaMovement());
+            if (this.hurtTime > 0) this.setDeltaMovement(this.getDeltaMovement().scale(0.94));
+            this.fallDistance = 0;
+        }
+        this.calculateEntityAnimation(false);
+    }
+
+    @Override
+    protected float tickHeadTurn(float yaw, float animationStep) {
+        double dx = this.getX() - this.xo, dz = this.getZ() - this.zo;
+        float heading = dx * dx + dz * dz > 1.0E-7
+                ? (float) Math.toDegrees(Math.atan2(-dx, dz)) : this.getYRot();
+        this.yBodyRot = this.level().isClientSide()
+                ? Mth.approachDegrees(this.yBodyRot, heading, 5.0F) : heading;
+        this.yHeadRot = this.yBodyRot;
+        return animationStep;
     }
 
     @Override

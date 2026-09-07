@@ -15,7 +15,7 @@ public final class ShichieichouAnimation {
     public static final float TAIL_LENGTH = 6.2F;
     public static final float STROKE_SPEED = 0.175F;
     public static final float UPSTROKE = (float) Math.toRadians(75);
-    public static final float DOWNSTROKE = (float) Math.toRadians(-65);
+    public static final float DOWNSTROKE = (float) Math.toRadians(-45);
 
     private ShichieichouAnimation() { }
 

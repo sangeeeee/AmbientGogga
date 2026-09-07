@@ -1,11 +1,12 @@
 package com.sange.ambientgogga.client.model;
 
-/** Fixed-tick Verlet ribbons with gravity, drag, and a downward angular constraint. */
+/** Semi-rigid hanging ribbons: damped inertia, bending stiffness and a downward cone. */
 public final class ShichieichouTailSimulation {
     public static final int SPINE_COLUMN = 8;
     private static final int SUBSTEPS = 4;
     private static final float DT = 1.0F / SUBSTEPS;
-    private static final float DRAG = (float) Math.pow(0.78, DT);
+    private static final float DRAG = (float) Math.pow(0.48, DT);
+    private static final float MIN_DOWNWARD = 0.86F;
     private static final float LINK_LENGTH = ShichieichouAnimation.TAIL_LENGTH / ShichieichouAnimation.TAIL_SEGMENTS;
     private final float[] current;
     private final float[] previous;
@@ -51,13 +52,27 @@ public final class ShichieichouTailSimulation {
                     float flutter = (float) Math.sin(phase * 0.8F - segment * 0.42F + side * 0.4F);
                     for (int axis = 0; axis < 3; axis++) {
                         float position = this.current[i + axis];
-                        float acceleration = axis == 0 ? flutter * 0.025F
-                                : axis == 1 ? 0.18F : 0.018F + speed * 0.025F;
+                        float acceleration = axis == 0 ? flutter * 0.006F
+                                : axis == 1 ? 0.18F : 0.010F + speed * 0.008F;
                         this.current[i + axis] += (position - this.previous[i + axis]) * DRAG
                                 + acceleration * DT * DT;
                         this.previous[i + axis] = position;
                     }
-                    constrain(this.current, i, i - ShichieichouAnimation.COLUMNS * 3);
+                    int parent = i - ShichieichouAnimation.COLUMNS * 3;
+                    // A bend spring couples adjacent links, like a narrow leaf
+                    // rather than a loose rope. A little trailing inertia remains.
+                    float tx = 0, ty = 0.98F, tz = 0.199F;
+                    if (segment > 1) {
+                        int before = parent - ShichieichouAnimation.COLUMNS * 3;
+                        tx = (this.current[parent] - this.current[before]) / LINK_LENGTH * 0.85F;
+                        ty = (this.current[parent + 1] - this.current[before + 1]) / LINK_LENGTH * 0.85F + 0.147F;
+                        tz = (this.current[parent + 2] - this.current[before + 2]) / LINK_LENGTH * 0.85F + 0.030F;
+                    }
+                    float stiffness = segment == 1 ? 0.12F : 0.22F;
+                    this.current[i] += (this.current[parent] + tx * LINK_LENGTH - this.current[i]) * stiffness;
+                    this.current[i + 1] += (this.current[parent + 1] + ty * LINK_LENGTH - this.current[i + 1]) * stiffness;
+                    this.current[i + 2] += (this.current[parent + 2] + tz * LINK_LENGTH - this.current[i + 2]) * stiffness;
+                    constrain(this.current, i, parent);
                 }
             }
         }
@@ -136,10 +151,10 @@ public final class ShichieichouTailSimulation {
             dx /= length; dy /= length; dz /= length;
         }
         // Even at the bottom of a broad downstroke, the tail remains below its root.
-        if (dy < 0.35F) {
+        if (dy < MIN_DOWNWARD) {
             float horizontal = (float) Math.sqrt(dx * dx + dz * dz);
-            float factor = (float) Math.sqrt(1 - 0.35F * 0.35F) / Math.max(horizontal, 1.0E-6F);
-            dx *= factor; dz *= factor; dy = 0.35F;
+            float factor = (float) Math.sqrt(1 - MIN_DOWNWARD * MIN_DOWNWARD) / Math.max(horizontal, 1.0E-6F);
+            dx *= factor; dz *= factor; dy = MIN_DOWNWARD;
             if (horizontal < 1.0E-6F) { dx = 0; dy = 1; dz = 0; }
         }
         points[i] = points[parent] + dx * LINK_LENGTH;

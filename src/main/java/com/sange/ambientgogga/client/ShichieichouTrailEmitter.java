@@ -36,11 +36,11 @@ public final class ShichieichouTrailEmitter {
             Vec3 radial = lateral.scale(Math.cos(angle)).add(vertical.scale(Math.sin(angle)));
             Vec3 origin = butterfly.position().subtract(step.scale((i + random.nextDouble()) / count))
                     .add(0.0D, 0.12D, 0.0D)
-                    .subtract(forward.scale(0.06D + random.nextDouble() * 0.10D))
-                    .add(radial.scale(radius * 0.09D * butterfly.getSizeModifier()));
-            Vec3 velocity = forward.scale(-0.008D - random.nextDouble() * 0.018D)
-                    .add(radial.scale(0.003D + radius * 0.009D))
-                    .add(0.0D, -0.001D, 0.0D);
+                    .subtract(forward.scale(0.04D + random.nextDouble() * 0.04D))
+                    .add(radial.scale(radius * 0.035D * butterfly.getSizeModifier()));
+            // Start on the path, then broaden gently as the individual motes age.
+            Vec3 velocity = forward.scale(-0.002D - random.nextDouble() * 0.004D)
+                    .add(radial.scale(0.002D + radius * 0.006D));
             butterfly.level().addParticle(ModParticles.SHICHIEICHOU_TRAIL.get(),
                     origin.x, origin.y, origin.z, velocity.x, velocity.y, velocity.z);
         }

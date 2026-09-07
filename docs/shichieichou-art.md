@@ -23,11 +23,10 @@ Background: uniform pure black RGB(0,0,0) for local alpha extraction. NO checker
 ## 身体材质提示词
 
 ```text
-Asset type: Minecraft pixel-art butterfly body UV texture, to wrap around a small tapered 3D insect body.
-Create a 64x64 pixel-art TEXTURE TILE enlarged with crisp square nearest-neighbor pixels. This is a rectangular material swatch, NOT an illustration of an insect.
-Full canvas opaque, no background, no words, no wings or outlines.
-Palette: deep desaturated navy and steel-blue base with icy cyan and lavender highlights. Arrange around 8 horizontal subtle segmented bands, separated by narrow darker blue bands, to suggest a segmented butterfly abdomen when wrapped onto an elongated rounded mesh. Center-left contains a soft vertical icy cyan highlight stripe; left and right canvas edges match seamlessly in dark blue. Each segment has a few blue-lavender pixel clusters indicating iridescent scales. Keep it readable and restrained, like elegant fantasy Minecraft insect pixel art. Body should be much darker than luminous pale wings. No photoreal detail, no smooth gradient, no brushed texture, no embossed box frame.
+Use case: precise-object-edit. Asset type: Minecraft 64x64 pixel art UV material for a small butterfly's rounded body and curved antennae. Input image 1 is the edit target: an existing dark blue segmented body swatch. Recolor the entire material to nearly white pearl/ivory with very faint ice blue and lavender shading. Preserve the horizontal segmentation, tiny pixel details, layout, and flat rectangular swatch filling the whole canvas. Every area including the left and right edges must become pale: use only luminous off-whites and very light blue-gray, shadows no darker than pale silver #CDD8E5. No navy, no black, no dark outline, no saturated blue. Crisp low-resolution pixel art, limited palette, no blur. Opaque material with no empty background. No butterfly illustration, no text, no border.
 ```
+
+2026-09-08 根据反馈将身体与触须改成接近白色；仍采用内置 imagegen 编辑，导入为 64×64、32 色 RGBA。模型顶点的深蓝乘色同步去掉，只在小眼部保留浅灰紫区分。原始输出：`exec-2b8b8137-7437-4449-b1ae-bb6f2f5dbc92.png`。
 
 ## 导入
 

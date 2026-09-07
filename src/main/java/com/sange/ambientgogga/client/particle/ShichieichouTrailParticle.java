@@ -10,7 +10,7 @@ import net.minecraft.client.particle.TextureSheetParticle;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.Mth;
 
-/** A small, non-light-producing blue-white mote left behind by Shichieichou. */
+/** A softly luminous lavender, ice-white or blue mote left along the flight path. */
 public final class ShichieichouTrailParticle extends TextureSheetParticle {
     private final float initialSize;
     private final float maximumAlpha;
@@ -33,7 +33,7 @@ public final class ShichieichouTrailParticle extends TextureSheetParticle {
         this.xd = velocityX;
         this.yd = velocityY;
         this.zd = velocityZ;
-        this.lifetime = 32 + this.random.nextInt(17);
+        this.lifetime = 40 + this.random.nextInt(21);
         this.initialSize = (0.010F + this.random.nextFloat() * 0.006F)
                 * ShichieichouClientConfig.DUST_SIZE.get().floatValue();
         this.quadSize = this.initialSize;
@@ -41,19 +41,20 @@ public final class ShichieichouTrailParticle extends TextureSheetParticle {
         this.twinklePhase = this.random.nextFloat() * Mth.TWO_PI;
         this.twinkleSpeed = 0.45F + this.random.nextFloat() * 0.35F;
         this.alpha = 0.20F;
-        this.gravity = 0.006F;
-        this.friction = 0.965F;
+        this.gravity = 0.002F;
+        this.friction = 0.985F;
         this.hasPhysics = true;
         this.setSize(0.01F, 0.01F);
         this.roll = this.random.nextFloat() * Mth.TWO_PI;
         this.oRoll = this.roll;
 
-        float whiteness = this.random.nextFloat();
-        this.setColor(
-                0.58F + whiteness * 0.20F,
-                0.82F + whiteness * 0.14F,
-                1.0F
-        );
+        int color = switch (this.random.nextInt(3)) {
+            case 0 -> 0xE1CCFF; // Pale lavender.
+            case 1 -> 0xEAF7FF; // Ice blue, almost white.
+            default -> 0x70ACFF; // Blue accent among the paler dust.
+        };
+        this.setColor(((color >> 16) & 255) / 255.0F, ((color >> 8) & 255) / 255.0F,
+                (color & 255) / 255.0F);
         this.pickSprite(sprites);
     }
 
@@ -66,7 +67,7 @@ public final class ShichieichouTrailParticle extends TextureSheetParticle {
 
         float progress = Mth.clamp((float) this.age / this.lifetime, 0.0F, 1.0F);
         float fadeIn = Mth.clamp((this.age + 1) / 2.0F, 0.0F, 1.0F);
-        float fadeOut = Mth.clamp((1.0F - progress) / 0.45F, 0.0F, 1.0F);
+        float fadeOut = (1.0F - progress) * (1.0F - progress);
         float shimmer = 0.5F + 0.5F * Mth.sin(this.age * this.twinkleSpeed + this.twinklePhase);
         this.alpha = this.maximumAlpha * fadeIn * fadeOut * (0.55F + 0.45F * shimmer * shimmer);
         this.quadSize = this.initialSize * (1.0F - progress * 0.20F);
@@ -76,7 +77,7 @@ public final class ShichieichouTrailParticle extends TextureSheetParticle {
     protected int getLightColor(float partialTick) {
         int light = super.getLightColor(partialTick);
         // Readable at night without marking every mote as maximum brightness.
-        return (light & 0xFFFF0000) | Math.max(light & 0xFFFF, 14 << 4);
+        return (light & 0xFFFF0000) | Math.max(light & 0xFFFF, 11 << 4);
     }
 
     // Trim transparent padding. Previously the visible dot occupied only 1/8

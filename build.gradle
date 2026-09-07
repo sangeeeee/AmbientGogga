@@ -207,8 +207,15 @@ tasks.register('verifyShichieichouAnimation', JavaExec) {
     mainClass = 'com.sange.ambientgogga.client.model.ShichieichouAnimationTest'
 }
 
+tasks.register('verifyShichieichouFlight', JavaExec) {
+    dependsOn tasks.named('animationTestClasses')
+    classpath = sourceSets.animationTest.runtimeClasspath
+    mainClass = 'com.sange.ambientgogga.entity.ai.ShichieichouFlightTest'
+}
+
 tasks.named('check') {
     dependsOn tasks.named('verifyShichieichouAnimation')
+    dependsOn tasks.named('verifyShichieichouFlight')
 }
 
 tasks.named('jar', Jar).configure {

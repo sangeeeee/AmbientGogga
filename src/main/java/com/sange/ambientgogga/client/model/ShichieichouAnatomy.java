@@ -13,23 +13,23 @@ public final class ShichieichouAnatomy {
 
     private static Mesh create() {
         Builder b = new Builder();
-        b.spindle(0, -0.02F, -1.04F, 0.26F, 0.22F, 0.34F, 8, 0xFFD8EDFF);
-        b.spindle(0, 0, -0.34F, 0.30F, 0.25F, 0.58F, 10, 0xFFE0F1FF);
+        b.spindle(0, -0.02F, -1.04F, 0.26F, 0.22F, 0.34F, 8, 0xFFFFFFFF);
+        b.spindle(0, 0, -0.34F, 0.30F, 0.25F, 0.58F, 10, 0xFFFFFFFF);
         // A long, progressively narrower abdomen with distinct segment rings.
         float[] z = {0.10F, 0.28F, 0.49F, 0.72F, 0.96F, 1.20F, 1.44F, 1.67F, 1.87F, 2.03F};
         float[] radius = {0.19F, 0.23F, 0.22F, 0.20F, 0.18F, 0.15F, 0.12F, 0.09F, 0.05F, 0.015F};
-        b.rings(0, 0.03F, z, radius, radius, 0xFFBDD9F1);
+        b.rings(0, 0.03F, z, radius, radius, 0xFFF4F6FF);
         for (int side : new int[]{-1, 1}) {
-            b.spindle(side * 0.20F, -0.10F, -1.13F, 0.085F, 0.08F, 0.12F, 5, 0xFF172B55);
+            b.spindle(side * 0.20F, -0.10F, -1.13F, 0.085F, 0.08F, 0.12F, 5, 0xFFB6BDD5);
             float[][] antenna = new float[13][3];
             for (int i = 0; i < antenna.length; i++) {
                 float t = (float) i / (antenna.length - 1);
                 antenna[i] = new float[]{side * (0.13F + 0.39F * t + 0.11F * t * t),
                         -0.16F - 0.57F * t + 0.14F * t * t, -1.25F - 1.32F * t};
             }
-            b.tube(antenna, 0.024F, 0.013F, 0xFFD0ECFF);
+            b.tube(antenna, 0.024F, 0.013F, 0xFFFFFFFF);
             float[] tip = antenna[antenna.length - 1];
-            b.spindle(tip[0], tip[1], tip[2], 0.045F, 0.04F, 0.105F, 5, 0xFFEDFAFF);
+            b.spindle(tip[0], tip[1], tip[2], 0.045F, 0.04F, 0.105F, 5, 0xFFFFFFFF);
             for (int leg = 0; leg < 3; leg++) {
                 float baseZ = -0.63F + leg * 0.34F;
                 float[][] path = {
@@ -37,7 +37,7 @@ public final class ShichieichouAnatomy {
                         {side * 0.38F, 0.30F, baseZ + 0.12F},
                         {side * 0.44F, 0.46F, baseZ + 0.39F},
                         {side * 0.37F, 0.49F, baseZ + 0.55F}};
-                b.tube(path, 0.024F, 0.009F, 0xFF9BC9E4);
+                b.tube(path, 0.024F, 0.009F, 0xFFF1F5FF);
             }
         }
         return b.build();

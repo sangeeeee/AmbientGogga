@@ -15,6 +15,8 @@ Ambient Gogga（氛围小虫）is a NeoForge mod for Minecraft 1.21.1 that adds 
 - NeoForge 21.1 or newer
 - Java 21
 
+Shichieichou flies slowly with eased turns and altitude changes, facing its flight direction. Its semi-rigid tails sway gently; pale lavender, ice-white and blue dust disperses along its trail.
+
 Shichieichou uses 256-pixel wing and 64-pixel body textures with the standard renderer; Sodium and external animation/modeling software are not required.
 
 ## Credits and third-party resources

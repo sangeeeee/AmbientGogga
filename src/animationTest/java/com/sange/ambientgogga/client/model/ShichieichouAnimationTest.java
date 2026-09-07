@@ -28,14 +28,14 @@ public final class ShichieichouAnimationTest {
                 }
             }
         }
-        require(Math.abs(Math.toDegrees(min) + 65) < 0.01, "Downstroke must reach -65 degrees");
+        require(Math.abs(Math.toDegrees(min) + 45) < 0.01, "Downstroke must reach -45 degrees");
         require(Math.abs(Math.toDegrees(max) - 75) < 0.01, "Upstroke must reach +75 degrees");
         require(2 * Math.PI / ShichieichouAnimation.STROKE_SPEED / 20 > 1.75, "Stroke is too fast");
         checkRenderScheduling();
         checkInertia();
         require(ShichieichouAnatomy.MESH.vertices().length / 5 == ShichieichouAnatomy.MESH.colors().length, "Anatomy UV/color count");
         for (float value : ShichieichouAnatomy.MESH.vertices()) require(Float.isFinite(value), "Invalid anatomy vertex");
-        System.out.println("Passed 6,480 poses; +75/-65 degree stroke; ~45 degree body; fixed tail lengths, inertia, teleport reset and render-rate independence.");
+        System.out.println("Passed 6,480 poses; +75/-45 degree stroke; ~45 degree body; fixed tail lengths, inertia, teleport reset and render-rate independence.");
     }
 
     private static void checkRenderScheduling() {
@@ -86,7 +86,7 @@ public final class ShichieichouAnimationTest {
                 int a = ShichieichouAnimation.index(r - 1, c), b = ShichieichouAnimation.index(r, c);
                 double x = v[b] - v[a], y = v[b + 1] - v[a + 1], z = v[b + 2] - v[a + 2];
                 double length = ShichieichouAnimation.TAIL_LENGTH / ShichieichouAnimation.TAIL_SEGMENTS;
-                require(y > length * 0.349, "Tail flips upward in world space");
+                require(y > length * 0.859, "Tail flips upward in world space");
                 require(Math.abs(Math.sqrt(x*x+y*y+z*z) - length) < 0.00002, "Stretched/detached tail link");
             }
         }

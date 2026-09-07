@@ -16,6 +16,8 @@ assert wing.mode == body.mode == 'RGBA'
 alpha = wing.getchannel('A')
 assert alpha.getextrema() == (0, 255) and alpha.getpixel((0, 0)) == 0
 assert len(wing.getcolors(256)) <= 49, 'Wing should use a restricted pixel-art palette'
+assert len(body.getcolors(256)) <= 32, 'Body should use a restricted pixel-art palette'
+assert min(body.convert('L').getdata()) > 185, 'Body material should be near-white, not dark blue'
 assert alpha.getbbox()[0] >= int(0.288 * 256) and alpha.getbbox()[2] <= 0.79 * 256
 # Count connected, visible components below the tail attachment; there must be one.
 remaining = {(x, y) for y in range(175, 256) for x in range(256) if alpha.getpixel((x, y)) > 128}
@@ -44,7 +46,7 @@ with ZipFile(root / 'build/moddev/artifacts/neoforge-21.1.248-client-extra-aka-m
 for path in base.rglob('*.json'):
     json.loads(path.read_text(encoding='utf8'))
 with ZipFile(root / 'build/libs/ambientgogga-1.0.0.jar') as jar:
-    assert not any('VisualCheck' in name or 'AnimationTest' in name for name in jar.namelist()), 'Development checks leaked into final JAR'
+    assert not any(any(token in name for token in ('VisualCheck', 'AnimationTest', 'FlightCheck', 'FlightTest')) for name in jar.namelist()), 'Development checks leaked into final JAR'
     for path in base.rglob('*'):
         if path.is_file():
             assert jar.read(path.relative_to(resources).as_posix()) == path.read_bytes(), path
