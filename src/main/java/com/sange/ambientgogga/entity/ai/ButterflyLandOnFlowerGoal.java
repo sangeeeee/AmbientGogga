@@ -4,6 +4,7 @@ import com.sange.ambientgogga.entity.Butterfly;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.ai.goal.MoveToBlockGoal;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.TallFlowerBlock;
@@ -13,12 +14,19 @@ import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.jetbrains.annotations.Nullable;
 
 public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
     private static final float DAYTIME_FLOWER_INTEREST = 0.35F;
-    private static final double FINAL_APPROACH_SPEED = 0.18D;
-    private static final double FINAL_APPROACH_DISTANCE_SQR = 0.01D;
-    private static final int MAX_FINAL_APPROACH_TICKS = 40;
+    private static final double MIN_FINAL_APPROACH_SPEED = 0.025D;
+    private static final double MAX_FINAL_APPROACH_SPEED = 0.10D;
+    private static final double FINAL_APPROACH_SPEED_PER_BLOCK = 0.12D;
+    private static final double FINAL_APPROACH_DISTANCE_SQR = 0.0324D;
+    private static final double LANDING_CLEARANCE = 0.02D;
+    private static final double MEANINGFUL_PROGRESS_SQR = 0.0025D;
+    private static final int MAX_FINAL_APPROACH_TICKS = 80;
+    private static final int MAX_TICKS_WITHOUT_PROGRESS = 80;
+    private static final int FAILED_TARGET_COOLDOWN_TICKS = 5 * 20;
     private static final int TARGET_VALIDATION_INTERVAL = 5;
 
     private final Butterfly butterfly;
@@ -30,6 +38,11 @@ public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
     private Vec3 cachedLandingPosition = Vec3.ZERO;
     private boolean finalApproach;
     private int finalApproachTicks;
+    private double bestDistanceToLandingSqr;
+    private int ticksWithoutProgress;
+    @Nullable
+    private BlockPos failedTarget;
+    private int failedTargetUntilTick;
 
     public ButterflyLandOnFlowerGoal(Butterfly butterfly, double speed, int searchRadius) {
         super(butterfly, speed, searchRadius);
@@ -81,6 +94,7 @@ public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
         this.finalApproachTicks = 0;
         this.targetActive = true;
         this.refreshTargetCache(this.butterfly.level());
+        this.resetProgressWatchdog();
         super.start();
     }
 
@@ -93,6 +107,7 @@ public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
         this.cachedTargetValid = false;
         this.finalApproach = false;
         this.finalApproachTicks = 0;
+        this.ticksWithoutProgress = 0;
         if (targetInvalid) {
             this.nextStartTick = 0;
         }
@@ -107,6 +122,9 @@ public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
     }
 
     private boolean isTargetStateValid(LevelReader level, BlockPos pos) {
+        if (this.isTemporarilyRejected(pos)) {
+            return false;
+        }
         BlockState state = level.getBlockState(pos);
         return this.canLandOnBlock(state) && !this.isBlockTaken(level, pos);
     }
@@ -140,10 +158,12 @@ public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
         }
 
         super.tick();
-        if (!this.isReachedTarget()) {
+        if (this.isReachedTarget()) {
+            this.beginFinalApproach();
             return;
         }
-        this.beginFinalApproach();
+
+        this.tickProgressWatchdog();
     }
 
     private void beginFinalApproach() {
@@ -156,6 +176,7 @@ public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
         this.finalApproachTicks = 0;
         this.butterfly.getNavigation().stop();
         this.butterfly.setDeltaMovement(this.butterfly.getDeltaMovement().scale(0.35D));
+        this.resetProgressWatchdog();
         this.tickFinalApproach();
     }
 
@@ -164,21 +185,27 @@ public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
             this.abortCurrentTarget();
             return;
         }
-        if (this.butterfly.position().distanceToSqr(this.cachedLandingPosition) <= FINAL_APPROACH_DISTANCE_SQR) {
+        double distanceSqr = this.butterfly.position().distanceToSqr(this.cachedLandingPosition);
+        if (distanceSqr <= FINAL_APPROACH_DISTANCE_SQR) {
             this.completeLanding();
             return;
         }
-        if (++this.finalApproachTicks > MAX_FINAL_APPROACH_TICKS) {
+        if (++this.finalApproachTicks > MAX_FINAL_APPROACH_TICKS || !this.recordProgress(distanceSqr)) {
             this.abortCurrentTarget();
             return;
         }
 
         this.butterfly.getNavigation().stop();
+        double approachSpeed = Mth.clamp(
+                Math.sqrt(distanceSqr) * FINAL_APPROACH_SPEED_PER_BLOCK,
+                MIN_FINAL_APPROACH_SPEED,
+                MAX_FINAL_APPROACH_SPEED
+        );
         this.butterfly.getMoveControl().setWantedPosition(
                 this.cachedLandingPosition.x,
                 this.cachedLandingPosition.y,
                 this.cachedLandingPosition.z,
-                FINAL_APPROACH_SPEED
+                approachSpeed
         );
     }
 
@@ -227,7 +254,11 @@ public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
         } else if (state.getBlock() instanceof TallFlowerBlock) {
             y -= 0.25D;
         }
+        y += LANDING_CLEARANCE;
         this.cachedLandingPosition = new Vec3(x, y, z);
+        if (!this.hasClearLandingSpace()) {
+            this.cachedTargetValid = false;
+        }
     }
 
     private boolean isCurrentTargetValid(LevelReader level, boolean force) {
@@ -238,10 +269,52 @@ public final class ButterflyLandOnFlowerGoal extends MoveToBlockGoal {
     }
 
     private void abortCurrentTarget() {
+        this.failedTarget = this.blockPos.immutable();
+        this.failedTargetUntilTick = this.butterfly.tickCount + FAILED_TARGET_COOLDOWN_TICKS;
         this.butterfly.getNavigation().stop();
         this.finalApproach = false;
         this.finalApproachTicks = 0;
         this.cachedTargetValid = false;
+        this.ticksWithoutProgress = 0;
         this.nextStartTick = 0;
+    }
+
+    private boolean hasClearLandingSpace() {
+        Vec3 offset = this.cachedLandingPosition.subtract(this.butterfly.position());
+        AABB landingBox = this.butterfly.getBoundingBox().move(offset).deflate(1.0E-4D);
+        return this.butterfly.level().noCollision(this.butterfly, landingBox);
+    }
+
+    private void tickProgressWatchdog() {
+        if (this.butterfly.getNavigation().isStuck()
+                || !this.recordProgress(this.butterfly.position().distanceToSqr(this.cachedLandingPosition))) {
+            this.abortCurrentTarget();
+        }
+    }
+
+    private void resetProgressWatchdog() {
+        this.bestDistanceToLandingSqr = this.butterfly.position().distanceToSqr(this.cachedLandingPosition);
+        this.ticksWithoutProgress = 0;
+    }
+
+    private boolean recordProgress(double distanceSqr) {
+        if (distanceSqr + MEANINGFUL_PROGRESS_SQR < this.bestDistanceToLandingSqr) {
+            this.bestDistanceToLandingSqr = distanceSqr;
+            this.ticksWithoutProgress = 0;
+        } else {
+            this.ticksWithoutProgress++;
+        }
+        return this.ticksWithoutProgress <= MAX_TICKS_WITHOUT_PROGRESS;
+    }
+
+    private boolean isTemporarilyRejected(BlockPos pos) {
+        if (this.failedTarget == null) {
+            return false;
+        }
+        if (this.butterfly.tickCount >= this.failedTargetUntilTick) {
+            this.failedTarget = null;
+            return false;
+        }
+        return this.failedTarget.equals(pos);
     }
 }
