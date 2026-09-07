@@ -4,9 +4,9 @@
 <style>
 *{box-sizing:border-box}body{margin:0;color:#e4eafb;background:#0b1220;font:15px system-ui,"Microsoft YaHei",sans-serif}main{max-width:1100px;margin:auto;padding:38px 36px}h1{font-size:30px;font-weight:500;margin:8px 0 12px}p{color:#a6b3cb;line-height:1.8}.label{font-size:11px;letter-spacing:3px;color:#73d9eb}canvas{width:100%;height:560px;display:block;cursor:grab;border-radius:20px;border:1px solid #263348;background:radial-gradient(ellipse at 50% 50%,#1d2b46,#0b1220 78%)}.controls{display:flex;flex-wrap:wrap;gap:20px;align-items:center;margin:20px 0}button{border:1px solid #45566c;border-radius:8px;background:#18253a;color:#d8e9ff;padding:8px 15px;cursor:pointer}input{accent-color:#8bdded;vertical-align:middle}.note{font-size:12px}footer{border-top:1px solid #293349;margin-top:28px;padding-top:18px;display:flex;gap:35px}footer b{font-weight:500;color:#b4dce6}footer p{font-size:13px;margin:5px 0}@media(max-width:700px){main{padding:24px 18px}canvas{height:440px}footer{display:block}}
 </style>
-<main><div class="label">AMBIENT GOGGA / MOTION STUDY</div><h1>七影蝶 · 翅面与尾突</h1><p>小巧的像素翅面，每侧一条随重力轻摆的长尾。拖动可旋转视角，滚轮缩放。</p>
+<main><div class="label">AMBIENT GOGGA / MOTION STUDY</div><h1>七影蝶 · 翅面与尾突</h1><p>下拍缓起后加速、快速制动；上抬平稳，顶部缓停。拖动可旋转视角，滚轮缩放。</p>
 <canvas id="scene"></canvas><div class="controls"><button id="play">暂停</button><button id="front">正面</button><button id="side">侧面</button><button id="top">俯视</button><label>播放速度 <input id="speed" type="range" min="0.15" max="1.5" step="0.05" value="1"></label><label><input id="wire" type="checkbox"> 显示分段</label></div>
-<div class="note" id="status">正在加载预览…</div><footer><div><b>柔性翅面</b><p>上抬 75° · 下压 45° · 约 1.8 秒一周期。</p></div><div><b>下垂尾突</b><p>每侧一条长尾，十二段弯曲约束，轻微滞后摆动。</p></div><div><b>保留花纹</b><p>256 像素翅面 · 64 像素浅白身体 · 立体弯曲触须。</p></div></footer>
+<div class="note" id="status">正在加载预览…</div><footer><div><b>柔性翅面</b><p>上抬 75° · 下压 45° · 约 1.8 秒一周期。下拍约占 42%，上抬约占 58%。</p></div><div><b>下垂尾突</b><p>每侧一条长尾，越靠近末端越硬，抑制鞭梢颤抖。</p></div><div><b>保留花纹</b><p>浅白身体保留头胸腹层次及触须，去掉脚和繁杂细节。</p></div></footer>
 <p class="note">此页使用实际模型与尾部模拟数据，身体仰角约 45°。预览采用简化照明；粉尘请查看游戏内截图。</p></main>
 <script>
 const data=__MESH_DATA__;

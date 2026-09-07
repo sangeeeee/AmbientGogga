@@ -5,7 +5,6 @@ public final class ShichieichouTailSimulation {
     public static final int SPINE_COLUMN = 8;
     private static final int SUBSTEPS = 4;
     private static final float DT = 1.0F / SUBSTEPS;
-    private static final float DRAG = (float) Math.pow(0.48, DT);
     private static final float MIN_DOWNWARD = 0.86F;
     private static final float LINK_LENGTH = ShichieichouAnimation.TAIL_LENGTH / ShichieichouAnimation.TAIL_SEGMENTS;
     private final float[] current;
@@ -43,36 +42,60 @@ public final class ShichieichouTailSimulation {
             float blend = (float) substep / SUBSTEPS;
             for (int column = SPINE_COLUMN; column <= SPINE_COLUMN; column++) {
                 int root = ShichieichouAnimation.index(ShichieichouAnimation.WING_SEGMENTS, column);
+                float oldParentX = this.current[root], oldParentY = this.current[root + 1], oldParentZ = this.current[root + 2];
                 for (int axis = 0; axis < 3; axis++) {
                     this.current[root + axis] = this.previousFrame[root + axis]
                             + (target[root + axis] - this.previousFrame[root + axis]) * blend;
                 }
                 for (int segment = 1; segment <= ShichieichouAnimation.TAIL_SEGMENTS; segment++) {
                     int i = ShichieichouAnimation.index(ShichieichouAnimation.WING_SEGMENTS + segment, column);
+                    float progress = (float) (segment - 1) / (ShichieichouAnimation.TAIL_SEGMENTS - 1);
+                    float tipWeight = progress * progress;
+                    float drag = (float) Math.pow(0.48F - 0.36F * tipWeight, DT);
+                    int parent = i - ShichieichouAnimation.COLUMNS * 3;
+                    float oldX = this.current[i], oldY = this.current[i + 1], oldZ = this.current[i + 2];
+                    // The increasingly rigid tip is carried by its parent. Moving
+                    // the velocity history too avoids turning transport into a kick.
+                    float transport = 0.55F + 0.43F * tipWeight;
+                    float shiftX = (this.current[parent] - oldParentX) * transport;
+                    float shiftY = (this.current[parent + 1] - oldParentY) * transport;
+                    float shiftZ = (this.current[parent + 2] - oldParentZ) * transport;
+                    this.current[i] += shiftX; this.previous[i] += shiftX;
+                    this.current[i + 1] += shiftY; this.previous[i + 1] += shiftY;
+                    this.current[i + 2] += shiftZ; this.previous[i + 2] += shiftZ;
                     float flutter = (float) Math.sin(phase * 0.8F - segment * 0.42F + side * 0.4F);
                     for (int axis = 0; axis < 3; axis++) {
                         float position = this.current[i + axis];
                         float acceleration = axis == 0 ? flutter * 0.006F
                                 : axis == 1 ? 0.18F : 0.010F + speed * 0.008F;
-                        this.current[i + axis] += (position - this.previous[i + axis]) * DRAG
+                        this.current[i + axis] += (position - this.previous[i + axis]) * drag
                                 + acceleration * DT * DT;
                         this.previous[i + axis] = position;
                     }
-                    int parent = i - ShichieichouAnimation.COLUMNS * 3;
+                    float predictedX = this.current[i], predictedY = this.current[i + 1], predictedZ = this.current[i + 2];
                     // A bend spring couples adjacent links, like a narrow leaf
                     // rather than a loose rope. A little trailing inertia remains.
                     float tx = 0, ty = 0.98F, tz = 0.199F;
                     if (segment > 1) {
                         int before = parent - ShichieichouAnimation.COLUMNS * 3;
-                        tx = (this.current[parent] - this.current[before]) / LINK_LENGTH * 0.85F;
-                        ty = (this.current[parent + 1] - this.current[before + 1]) / LINK_LENGTH * 0.85F + 0.147F;
-                        tz = (this.current[parent + 2] - this.current[before + 2]) / LINK_LENGTH * 0.85F + 0.030F;
+                        float coupling = 0.85F + 0.13F * tipWeight;
+                        tx = (this.current[parent] - this.current[before]) / LINK_LENGTH * coupling;
+                        ty = (this.current[parent + 1] - this.current[before + 1]) / LINK_LENGTH * coupling + 0.98F * (1 - coupling);
+                        tz = (this.current[parent + 2] - this.current[before + 2]) / LINK_LENGTH * coupling + 0.199F * (1 - coupling);
                     }
-                    float stiffness = segment == 1 ? 0.12F : 0.22F;
+                    float stiffness = segment == 1 ? 0.12F : 0.22F + 0.60F * tipWeight;
                     this.current[i] += (this.current[parent] + tx * LINK_LENGTH - this.current[i]) * stiffness;
                     this.current[i + 1] += (this.current[parent + 1] + ty * LINK_LENGTH - this.current[i + 1]) * stiffness;
                     this.current[i + 2] += (this.current[parent + 2] + tz * LINK_LENGTH - this.current[i + 2]) * stiffness;
                     constrain(this.current, i, parent);
+                    limitSwing(this.current, i, parent, oldX - oldParentX, oldY - oldParentY, oldZ - oldParentZ);
+                    // Constraint corrections are not external kicks. Remove most
+                    // of that artificial velocity near the tip to prevent whip cracks.
+                    float correctionDamping = 0.30F + 0.65F * tipWeight;
+                    this.previous[i] += (this.current[i] - predictedX) * correctionDamping;
+                    this.previous[i + 1] += (this.current[i + 1] - predictedY) * correctionDamping;
+                    this.previous[i + 2] += (this.current[i + 2] - predictedZ) * correctionDamping;
+                    oldParentX = oldX; oldParentY = oldY; oldParentZ = oldZ;
                 }
             }
         }
@@ -138,6 +161,24 @@ public final class ShichieichouTailSimulation {
 
     private float lerp(int i, float t) {
         return this.previousFrame[i] + (this.current[i] - this.previousFrame[i]) * t;
+    }
+
+    /** Bound angular response as well as bending so a fast root cannot snap the whole tip. */
+    private static void limitSwing(float[] points, int i, int parent, float oldX, float oldY, float oldZ) {
+        float length = (float) Math.sqrt(oldX * oldX + oldY * oldY + oldZ * oldZ);
+        if (length < 1.0E-6F) return;
+        oldX /= length; oldY /= length; oldZ /= length;
+        float x = (points[i] - points[parent]) / LINK_LENGTH;
+        float y = (points[i + 1] - points[parent + 1]) / LINK_LENGTH;
+        float z = (points[i + 2] - points[parent + 2]) / LINK_LENGTH;
+        double angle = Math.acos(Math.max(-1, Math.min(1, oldX * x + oldY * y + oldZ * z)));
+        double maximum = Math.toRadians(6) * DT;
+        if (angle <= maximum) return;
+        float a = (float) (Math.sin(angle - maximum) / Math.sin(angle));
+        float b = (float) (Math.sin(maximum) / Math.sin(angle));
+        points[i] = points[parent] + (oldX * a + x * b) * LINK_LENGTH;
+        points[i + 1] = points[parent + 1] + (oldY * a + y * b) * LINK_LENGTH;
+        points[i + 2] = points[parent + 2] + (oldZ * a + z * b) * LINK_LENGTH;
     }
 
     private static void constrain(float[] points, int i, int parent) {

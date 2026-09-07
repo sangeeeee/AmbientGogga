@@ -13,15 +13,14 @@ public final class ShichieichouAnatomy {
 
     private static Mesh create() {
         Builder b = new Builder();
-        b.spindle(0, -0.02F, -1.04F, 0.26F, 0.22F, 0.34F, 8, 0xFFFFFFFF);
-        b.spindle(0, 0, -0.34F, 0.30F, 0.25F, 0.58F, 10, 0xFFFFFFFF);
-        // A long, progressively narrower abdomen with distinct segment rings.
-        float[] z = {0.10F, 0.28F, 0.49F, 0.72F, 0.96F, 1.20F, 1.44F, 1.67F, 1.87F, 2.03F};
-        float[] radius = {0.19F, 0.23F, 0.22F, 0.20F, 0.18F, 0.15F, 0.12F, 0.09F, 0.05F, 0.015F};
+        b.spindle(0, -0.02F, -1.04F, 0.26F, 0.22F, 0.34F, 5, 0xFFFFFFFF);
+        b.spindle(0, 0, -0.34F, 0.30F, 0.25F, 0.58F, 6, 0xFFF5F8FF);
+        // Broad head/thorax/abdomen volumes with a simple tapered silhouette.
+        float[] z = {0.10F, 0.35F, 0.82F, 1.30F, 1.73F, 2.03F};
+        float[] radius = {0.19F, 0.23F, 0.19F, 0.14F, 0.075F, 0.015F};
         b.rings(0, 0.03F, z, radius, radius, 0xFFF4F6FF);
         for (int side : new int[]{-1, 1}) {
-            b.spindle(side * 0.20F, -0.10F, -1.13F, 0.085F, 0.08F, 0.12F, 5, 0xFFB6BDD5);
-            float[][] antenna = new float[13][3];
+            float[][] antenna = new float[9][3];
             for (int i = 0; i < antenna.length; i++) {
                 float t = (float) i / (antenna.length - 1);
                 antenna[i] = new float[]{side * (0.13F + 0.39F * t + 0.11F * t * t),
@@ -29,22 +28,13 @@ public final class ShichieichouAnatomy {
             }
             b.tube(antenna, 0.024F, 0.013F, 0xFFFFFFFF);
             float[] tip = antenna[antenna.length - 1];
-            b.spindle(tip[0], tip[1], tip[2], 0.045F, 0.04F, 0.105F, 5, 0xFFFFFFFF);
-            for (int leg = 0; leg < 3; leg++) {
-                float baseZ = -0.63F + leg * 0.34F;
-                float[][] path = {
-                        {side * 0.17F, 0.12F, baseZ},
-                        {side * 0.38F, 0.30F, baseZ + 0.12F},
-                        {side * 0.44F, 0.46F, baseZ + 0.39F},
-                        {side * 0.37F, 0.49F, baseZ + 0.55F}};
-                b.tube(path, 0.024F, 0.009F, 0xFFF1F5FF);
-            }
+            b.spindle(tip[0], tip[1], tip[2], 0.045F, 0.04F, 0.105F, 3, 0xFFFFFFFF);
         }
         return b.build();
     }
 
     private static final class Builder {
-        private static final int SIDES = 10;
+        private static final int SIDES = 8;
         private final List<Float> vertices = new ArrayList<>();
         private final List<Integer> colors = new ArrayList<>();
 
@@ -72,7 +62,8 @@ public final class ShichieichouAnatomy {
                         int s = side + (corner == 1 || corner == 2 ? 1 : 0);
                         float angle = (float) (s * Math.PI * 2 / SIDES);
                         vertex(x + xs[r] * (float) Math.cos(angle), y + ys[r] * (float) Math.sin(angle),
-                                zs[r], (float) s / SIDES, (float) r / (zs.length - 1), color);
+                                zs[r], 0.04F + (float) s / SIDES * 0.12F,
+                                0.04F + (float) r / (zs.length - 1) * 0.12F, color);
                     }
                 }
             }

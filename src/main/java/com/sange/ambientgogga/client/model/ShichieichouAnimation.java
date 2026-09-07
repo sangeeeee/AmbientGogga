@@ -16,6 +16,7 @@ public final class ShichieichouAnimation {
     public static final float STROKE_SPEED = 0.175F;
     public static final float UPSTROKE = (float) Math.toRadians(75);
     public static final float DOWNSTROKE = (float) Math.toRadians(-45);
+    public static final float DOWNSTROKE_FRACTION = 0.42F;
 
     private ShichieichouAnimation() { }
 
@@ -24,8 +25,35 @@ public final class ShichieichouAnimation {
     }
 
     public static float wingAngle(float phase) {
-        return (UPSTROKE + DOWNSTROKE) * 0.5F
-                + (UPSTROKE - DOWNSTROKE) * 0.5F * sin(phase);
+        double cycle = (phase - Math.PI / 2) / (Math.PI * 2);
+        cycle -= Math.floor(cycle);
+        if (cycle < DOWNSTROKE_FRACTION) {
+            // The first half of the downstroke's time covers roughly its first
+            // quarter of travel, then comes the fast push and short braking phase.
+            float travel = strokeTravel((float) cycle / DOWNSTROKE_FRACTION, 0.50F, 0.80F, 1, 2.6F);
+            return UPSTROKE + (DOWNSTROKE - UPSTROKE) * travel;
+        }
+        // Brief pickup from the bottom, steady recovery, then a long soft stop.
+        float travel = strokeTravel((float) (cycle - DOWNSTROKE_FRACTION) / (1 - DOWNSTROKE_FRACTION),
+                0.12F, 0.68F, 1, 1);
+        return DOWNSTROKE + (UPSTROKE - DOWNSTROKE) * travel;
+    }
+
+    /** Integrate a smooth velocity profile: angle, velocity and acceleration stay continuous. */
+    private static float strokeTravel(float t, float first, float second, float v1, float v2) {
+        t = Math.max(0, Math.min(1, t));
+        float area1 = first * v1 * 0.5F;
+        float area2 = (second - first) * (v1 + v2) * 0.5F;
+        float total = area1 + area2 + (1 - second) * v2 * 0.5F;
+        float distance;
+        if (t < first) distance = integrateVelocity(t / first, 0, v1) * first;
+        else if (t < second) distance = area1 + integrateVelocity((t - first) / (second - first), v1, v2) * (second - first);
+        else distance = area1 + area2 + integrateVelocity((t - second) / (1 - second), v2, 0) * (1 - second);
+        return distance / total;
+    }
+
+    private static float integrateVelocity(float t, float start, float end) {
+        return start * t + (end - start) * t * t * t * (1 - 0.5F * t);
     }
 
     public static float bodyPitch(float phase, float speed) {

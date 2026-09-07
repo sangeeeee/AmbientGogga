@@ -33,9 +33,74 @@ public final class ShichieichouAnimationTest {
         require(2 * Math.PI / ShichieichouAnimation.STROKE_SPEED / 20 > 1.75, "Stroke is too fast");
         checkRenderScheduling();
         checkInertia();
+        checkStrokeTiming();
+        checkTipStability();
         require(ShichieichouAnatomy.MESH.vertices().length / 5 == ShichieichouAnatomy.MESH.colors().length, "Anatomy UV/color count");
         for (float value : ShichieichouAnatomy.MESH.vertices()) require(Float.isFinite(value), "Invalid anatomy vertex");
         System.out.println("Passed 6,480 poses; +75/-45 degree stroke; ~45 degree body; fixed tail lengths, inertia, teleport reset and render-rate independence.");
+    }
+
+    private static void checkStrokeTiming() {
+        double down = ShichieichouAnimation.DOWNSTROKE_FRACTION;
+        double span = ShichieichouAnimation.UPSTROKE - ShichieichouAnimation.DOWNSTROKE;
+        double firstTravel = (angleAt(0) - angleAt(down * 0.5)) / span;
+        require(firstTravel > 0.20 && firstTravel < 0.27, "Slow departure must cover about the first quarter of downstroke travel");
+        double peakDown = -velocityAt(down * 0.8);
+        double recoverySpeed = velocityAt(down + (1 - down) * 0.40);
+        require(peakDown > recoverySpeed * 2.3, "Downstroke lacks the fast push");
+        require(-velocityAt(down * 0.7) > -velocityAt(down * 0.3) * 3, "Downstroke does not accelerate distinctly");
+        require(-velocityAt(down * 0.98) < peakDown * 0.05, "Downstroke does not brake at the bottom");
+        require(Math.abs(velocityAt(down + (1 - down) * 0.25) - recoverySpeed) < 0.01, "Recovery should be nearly uniform");
+        require(velocityAt(down + (1 - down) * 0.9) < recoverySpeed * 0.3, "Recovery does not ease near the top");
+        for (double endpoint : new double[]{0, down, 1}) require(Math.abs(velocityAt(endpoint)) < 0.01, "Stroke reversal is not at rest");
+        for (int i = 1; i <= 1000; i++) {
+            require(angleAt(down * i / 1000) <= angleAt(down * (i - 1) / 1000) + 1E-6, "Downstroke reverses early");
+            require(angleAt(down + (1 - down) * i / 1000) >= angleAt(down + (1 - down) * (i - 1) / 1000) - 1E-6, "Recovery reverses early");
+        }
+    }
+
+    private static double angleAt(double cycle) {
+        return ShichieichouAnimation.wingAngle((float) (Math.PI / 2 + cycle * Math.PI * 2));
+    }
+
+    private static double velocityAt(double cycle) {
+        double h = 0.0002;
+        return (angleAt(cycle + h) - angleAt(cycle - h)) / (2 * h);
+    }
+
+    private static void checkTipStability() {
+        ShichieichouPose pose = new ShichieichouPose();
+        float[][] wings = {new float[SIZE], new float[SIZE]};
+        double maxTipBend = 0, maxTipChange = 0;
+        double[][] lastTangent = new double[2][3];
+        for (int tick = 0; tick < 1200; tick++) {
+            double x = Math.sin(tick * 0.035) * 0.6, y = Math.sin(tick * 0.025) * 0.15;
+            pose.sample(wings, tick, 17, 0.5F, 0.3F, x, y, 0, tick * 1.2F, 0.9F);
+            for (int side = 0; side < 2; side++) {
+                checkTail(wings[side]); checkSurface(wings[side]);
+                int tip = ShichieichouAnimation.index(ShichieichouAnimation.ROWS - 1, ShichieichouTailSimulation.SPINE_COLUMN);
+                int step = ShichieichouAnimation.COLUMNS * 3;
+                double[] tangent = tangent(wings[side], tip - step, tip);
+                if (tick > 50) {
+                    maxTipBend = Math.max(maxTipBend, angleBetween(tangent, tangent(wings[side], tip - 2 * step, tip - step)));
+                    maxTipChange = Math.max(maxTipChange, angleBetween(tangent, lastTangent[side]));
+                }
+                lastTangent[side] = tangent;
+            }
+        }
+        System.out.printf("Fast-stroke tail stress: max terminal bend %.3f degrees, max terminal turn %.3f degrees/tick.%n", maxTipBend, maxTipChange);
+        require(maxTipBend < 4, "Terminal links fold independently like a whip");
+        require(maxTipChange < 10, "Terminal link snaps between ticks");
+    }
+
+    private static double[] tangent(float[] p, int a, int b) {
+        double x = p[b] - p[a], y = p[b + 1] - p[a + 1], z = p[b + 2] - p[a + 2];
+        double length = Math.sqrt(x*x + y*y + z*z);
+        return new double[]{x / length, y / length, z / length};
+    }
+
+    private static double angleBetween(double[] a, double[] b) {
+        return Math.toDegrees(Math.acos(Math.max(-1, Math.min(1, a[0]*b[0] + a[1]*b[1] + a[2]*b[2]))));
     }
 
     private static void checkRenderScheduling() {
