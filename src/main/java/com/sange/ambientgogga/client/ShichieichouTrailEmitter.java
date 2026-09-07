@@ -12,8 +12,9 @@ public final class ShichieichouTrailEmitter {
 
     public static void emit(Shichieichou butterfly, Vec3 step) {
         int maximum = ShichieichouClientConfig.DUST_PER_TICK.get();
+        double density = ShichieichouClientConfig.DUST_DENSITY.get();
         double distance = step.length();
-        if (maximum == 0 || distance > 1.0D || butterfly.isInvisible() || butterfly.isClientFadeGhost()) {
+        if (maximum == 0 || density == 0 || distance > 1.0D || butterfly.isInvisible() || butterfly.isClientFadeGhost()) {
             return;
         }
         RandomSource random = butterfly.getRandom();
@@ -31,6 +32,8 @@ public final class ShichieichouTrailEmitter {
         Vec3 vertical = lateral.cross(forward).normalize();
         int count = hovering ? 1 : maximum;
         for (int i = 0; i < count; i++) {
+            // Thin individual candidates so both flying and hovering trails retain an even distribution.
+            if (random.nextDouble() >= density) continue;
             double angle = random.nextDouble() * Math.PI * 2.0D;
             double radius = Math.sqrt(random.nextDouble());
             Vec3 radial = lateral.scale(Math.cos(angle)).add(vertical.scale(Math.sin(angle)));

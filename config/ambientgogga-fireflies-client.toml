@@ -1,0 +1,141 @@
+#Client-side firefly settings. Durations use game ticks (20 ticks/second). Appearance settings affect newly spawned particles.
+[fireflies]
+	#Maximum spawn attempts per second at the nightly peak; 0 disables spawning.
+	# Default: 10.0
+	# Range: 0.0 ~ 120.0
+	maxSpawnsPerSecond = 10.0
+	#Minimum horizontal distance from the player in blocks; reversed bounds are swapped automatically.
+	# Default: 1.5
+	# Range: 0.0 ~ 128.0
+	minSpawnDistance = 1.5
+	#Maximum distance above solid ground for a spawn location in blocks.
+	# Default: 5
+	# Range: 1 ~ 32
+	maxHeightAboveGround = 5
+	#Maximum horizontal distance from the player in blocks.
+	# Default: 56.0
+	# Range: 0.0 ~ 128.0
+	maxSpawnDistance = 56.0
+	#Maximum number of location attempts per particle.
+	# Default: 24
+	# Range: 1 ~ 128
+	locationAttempts = 24
+	#Maximum height difference from the player in blocks.
+	# Default: 30
+	# Range: 0 ~ 128
+	maxVerticalDistance = 30
+	#Whether fireflies spawn naturally.
+	enabled = true
+
+	[fireflies.seasons]
+		#Firefly season: ALL_YEAR = all year, SUMMER_ONLY = summer only, REALISTIC = realistic (Greater Heat phenology preset by default).
+		#Restricts natural spawning only when Ecliptic Seasons is installed; otherwise this setting has no effect.
+		#Allowed Values: ALL_YEAR, SUMMER_ONLY, REALISTIC
+		fireflySeason = "ALL_YEAR"
+		#Allowed solar terms in realistic mode. Greater Heat approximates a 15-day midsummer phenology window, not a universal firefly calendar.
+		#Adjust for the region or species, for example by adding lesser_heat (Lesser Heat) or grain_in_ear (Grain in Ear).
+		realisticSolarTerms = ["greater_heat"]
+
+	[fireflies.appearance]
+		#Upper bound of randomized peak brightness; the current mean peak alpha is about 13% lower than before.
+		# Default: 0.88
+		# Range: 0.0 ~ 1.0
+		maxPeakAlpha = 0.88
+		#Minimum particle block light; preserves environmental light without illuminating nearby blocks. Previously fixed at full brightness.
+		# Default: 14
+		# Range: 0 ~ 15
+		minimumLight = 14
+		#Maximum flashes per second.
+		# Default: 0.27
+		# Range: 0.01 ~ 3.0
+		maxBlinkFrequencyHz = 0.27
+		#Minimum flashes per second; the current default is slightly faster than before.
+		# Default: 0.17
+		# Range: 0.01 ~ 3.0
+		minBlinkFrequencyHz = 0.17
+		#Brightness at the blink trough as a fraction of peak brightness; 0 allows complete darkness, 1 disables blinking.
+		# Default: 0.24
+		# Range: 0.0 ~ 1.0
+		minimumGlowFraction = 0.24
+		#Minimum particle quad half-size in blocks.
+		# Default: 0.018
+		# Range: 0.001 ~ 0.25
+		minSize = 0.018
+		#Maximum particle quad half-size; reduced by about 10% from the previous value of 0.060.
+		# Default: 0.054
+		# Range: 0.001 ~ 0.25
+		maxSize = 0.054
+		#Lower bound of randomized peak brightness (alpha).
+		# Default: 0.7
+		# Range: 0.0 ~ 1.0
+		minPeakAlpha = 0.7
+
+	[fireflies.motion]
+		#Minimum interval between choosing new flight directions in ticks.
+		# Default: 45
+		# Range: 1 ~ 1200
+		minDirectionChangeTicks = 45
+		#Flight sway frequency multiplier.
+		# Default: 1.0
+		# Range: 0.0 ~ 4.0
+		swayFrequencyMultiplier = 1.0
+		#Steering smoothing factor; smaller values produce gentler turns.
+		# Default: 0.055
+		# Range: 0.001 ~ 1.0
+		steeringFactor = 0.055
+		#Distance from the spawn position at which particles start returning, in blocks.
+		# Default: 12.0
+		# Range: 0.1 ~ 64.0
+		maxRoamDistance = 12.0
+		#Flight speed multiplier; 0 keeps particles stationary.
+		# Default: 1.0
+		# Range: 0.0 ~ 4.0
+		speedMultiplier = 1.0
+		#Maximum interval between choosing new flight directions in ticks.
+		# Default: 120
+		# Range: 1 ~ 1200
+		maxDirectionChangeTicks = 120
+
+	[fireflies.timing]
+		#Ticks to decrease the spawn rate to zero; the window may wrap across midnight and lasts at most one day.
+		# Default: 1000
+		# Range: 0 ~ 24000
+		rampDownTicks = 1000
+		#Ticks to increase the spawn rate from zero to its peak; 0 reaches the peak immediately.
+		# Default: 5000
+		# Range: 0 ~ 24000
+		rampUpTicks = 5000
+		#Spawn window start: 0 sunrise, 6000 noon, 12000 sunset, 18000 midnight.
+		# Default: 13000
+		# Range: 0 ~ 23999
+		nightStartTick = 13000
+		#Ticks to maintain the peak spawn rate.
+		# Default: 5000
+		# Range: 0 ~ 24000
+		peakTicks = 5000
+
+	[fireflies.lifetime]
+		#Minimum fade-out duration before disappearing in ticks.
+		# Default: 40
+		# Range: 1 ~ 12000
+		minFadeOutTicks = 40
+		#Maximum fade-in duration after spawning in ticks.
+		# Default: 50
+		# Range: 1 ~ 12000
+		maxFadeInTicks = 50
+		#Maximum particle lifetime in ticks.
+		# Default: 600
+		# Range: 1 ~ 12000
+		maxLifetimeTicks = 600
+		#Minimum particle lifetime in ticks.
+		# Default: 240
+		# Range: 1 ~ 12000
+		minLifetimeTicks = 240
+		#Maximum fade-out duration before disappearing in ticks. Fade durations cannot exceed the particle lifetime.
+		# Default: 80
+		# Range: 1 ~ 12000
+		maxFadeOutTicks = 80
+		#Minimum fade-in duration after spawning in ticks.
+		# Default: 20
+		# Range: 1 ~ 12000
+		minFadeInTicks = 20

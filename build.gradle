@@ -29,6 +29,11 @@ sourceSets.main.resources {
 
 repositories {
     maven {
+        name = "Modrinth"
+        url = "https://api.modrinth.com/maven"
+        content { includeGroup "maven.modrinth" }
+    }
+    maven {
         name = "CurseMaven"
         url = "https://www.cursemaven.com"
         content {
@@ -122,6 +127,8 @@ configurations {
 }
 
 dependencies {
+    // Optional seasonal API. Never bundle it or add it to development runtime.
+    compileOnly "maven.modrinth:ecliptic-seasons:0.13.8.4.1"
     // Optional Croptopia integration test environment. localRuntime makes these
     // available to development runs without bundling or publishing them as
     // dependencies of Ambient Gogga.
@@ -199,6 +206,10 @@ sourceSets {
         compileClasspath += sourceSets.main.output
         runtimeClasspath += sourceSets.main.output
     }
+    clientConfigTest {
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.output + sourceSets.main.runtimeClasspath
+    }
 }
 
 tasks.register('verifyShichieichouAnimation', JavaExec) {
@@ -216,7 +227,25 @@ tasks.register('verifyShichieichouFlight', JavaExec) {
 tasks.named('check') {
     dependsOn tasks.named('verifyShichieichouAnimation')
     dependsOn tasks.named('verifyShichieichouFlight')
+    dependsOn tasks.named('verifyFireflyTiming')
 }
+
+tasks.register('verifyFireflyTiming', JavaExec) {
+    dependsOn tasks.named('animationTestClasses')
+    classpath = sourceSets.animationTest.runtimeClasspath
+    mainClass = 'com.sange.ambientgogga.client.FireflyTimingTest'
+}
+
+tasks.register('verifyFireflyConfig', JavaExec) {
+    dependsOn tasks.named('clientConfigTestClasses')
+    classpath = sourceSets.clientConfigTest.runtimeClasspath
+    mainClass = 'com.sange.ambientgogga.client.FireflyConfigTest'
+    args layout.buildDirectory.file('verification/ambientgogga-fireflies-client.toml').get().asFile.absolutePath
+    workingDir layout.buildDirectory.dir('verification')
+    doFirst { workingDir.mkdirs() }
+}
+
+tasks.named('check') { dependsOn tasks.named('verifyFireflyConfig') }
 
 tasks.named('jar', Jar).configure {
     from('LICENSE') {

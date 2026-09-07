@@ -1,5 +1,7 @@
 package com.sange.ambientgogga.client.particle;
 
+import com.sange.ambientgogga.client.FireflyClientConfig;
+import com.sange.ambientgogga.client.FireflyTiming;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
@@ -11,14 +13,10 @@ import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.Mth;
 
 public final class FireflyParticle extends TextureSheetParticle {
-    private static final int MIN_LIFETIME = 240;
-    private static final int EXTRA_LIFETIME = 361;
-    private static final int MIN_FADE_IN_TICKS = 20;
-    private static final int EXTRA_FADE_IN_TICKS = 31;
-    private static final int MIN_FADE_OUT_TICKS = 40;
-    private static final int EXTRA_FADE_OUT_TICKS = 41;
-    private static final double STEERING_FACTOR = 0.055;
-    private static final double MAX_ROAM_DISTANCE = 12.0;
+    private final double motionSpeed, motionFrequency, steeringFactor, maxRoamDistance;
+    private final int minSteeringTicks, maxSteeringTicks;
+    private final float minimumGlow;
+    private final int minimumLight;
 
     private final SpriteSet sprites;
     private final double originX;
@@ -27,7 +25,7 @@ public final class FireflyParticle extends TextureSheetParticle {
     private final int fadeInTicks;
     private final int fadeOutTicks;
     private final float maximumAlpha;
-    private final float blinkSpeed;
+    private final float blinkFrequencyHz;
     private final float blinkPhase;
     private final double motionFrequencyX;
     private final double motionFrequencyY;
@@ -56,13 +54,25 @@ public final class FireflyParticle extends TextureSheetParticle {
         this.originX = x;
         this.originY = y;
         this.originZ = z;
-        this.lifetime = MIN_LIFETIME + this.random.nextInt(EXTRA_LIFETIME);
-        this.fadeInTicks = MIN_FADE_IN_TICKS + this.random.nextInt(EXTRA_FADE_IN_TICKS);
-        this.fadeOutTicks = MIN_FADE_OUT_TICKS + this.random.nextInt(EXTRA_FADE_OUT_TICKS);
-        this.quadSize = 0.018F + this.random.nextFloat() * 0.042F;
-        this.maximumAlpha = 0.82F + this.random.nextFloat() * 0.18F;
+        this.lifetime = randomTicks(FireflyClientConfig.MIN_LIFETIME.get(), FireflyClientConfig.MAX_LIFETIME.get());
+        this.motionSpeed = FireflyClientConfig.MOTION_SPEED.get();
+        this.motionFrequency = FireflyClientConfig.MOTION_FREQUENCY.get();
+        this.steeringFactor = FireflyClientConfig.STEERING_FACTOR.get();
+        this.maxRoamDistance = FireflyClientConfig.ROAM_DISTANCE.get();
+        this.minSteeringTicks = FireflyClientConfig.MIN_STEERING_TICKS.get();
+        this.maxSteeringTicks = FireflyClientConfig.MAX_STEERING_TICKS.get();
+        this.minimumGlow = FireflyClientConfig.MIN_GLOW.get().floatValue();
+        this.minimumLight = FireflyClientConfig.MINIMUM_LIGHT.get();
+        // Particle's velocity constructor randomizes input; start with the supplied velocity.
+        this.xd = velocityX * this.motionSpeed;
+        this.yd = velocityY * this.motionSpeed;
+        this.zd = velocityZ * this.motionSpeed;
+        this.fadeInTicks = Math.min(this.lifetime, randomTicks(FireflyClientConfig.MIN_FADE_IN.get(), FireflyClientConfig.MAX_FADE_IN.get()));
+        this.fadeOutTicks = Math.min(this.lifetime, randomTicks(FireflyClientConfig.MIN_FADE_OUT.get(), FireflyClientConfig.MAX_FADE_OUT.get()));
+        this.quadSize = (float) randomBetween(FireflyClientConfig.MIN_SIZE.get(), FireflyClientConfig.MAX_SIZE.get());
+        this.maximumAlpha = (float) randomBetween(FireflyClientConfig.MIN_PEAK_ALPHA.get(), FireflyClientConfig.MAX_PEAK_ALPHA.get());
         this.blinkPhase = this.random.nextFloat() * Mth.TWO_PI;
-        this.blinkSpeed = 0.045F + this.random.nextFloat() * 0.025F;
+        this.blinkFrequencyHz = (float) randomBetween(FireflyClientConfig.MIN_BLINK_HZ.get(), FireflyClientConfig.MAX_BLINK_HZ.get());
         this.motionFrequencyX = randomBetween(0.025, 0.055);
         this.motionFrequencyY = randomBetween(0.020, 0.045);
         this.motionFrequencyZ = randomBetween(0.030, 0.060);
@@ -94,7 +104,7 @@ public final class FireflyParticle extends TextureSheetParticle {
         updateGlow();
         updateSteering();
 
-        double motionTime = this.age;
+        double motionTime = this.age * this.motionFrequency;
         double desiredVelocityX = this.targetVelocityX
                 + Math.sin(motionTime * this.motionFrequencyX + this.motionPhaseX) * 0.008
                 + Math.sin(motionTime * this.motionFrequencyY * 0.53 + this.motionPhaseZ) * 0.004;
@@ -105,9 +115,9 @@ public final class FireflyParticle extends TextureSheetParticle {
                 + Math.cos(motionTime * this.motionFrequencyZ + this.motionPhaseZ) * 0.008
                 + Math.sin(motionTime * this.motionFrequencyX * 0.47 + this.motionPhaseY) * 0.004;
 
-        this.xd += (desiredVelocityX - this.xd) * STEERING_FACTOR;
-        this.yd += (desiredVelocityY - this.yd) * STEERING_FACTOR;
-        this.zd += (desiredVelocityZ - this.zd) * STEERING_FACTOR;
+        this.xd += (desiredVelocityX * this.motionSpeed - this.xd) * this.steeringFactor;
+        this.yd += (desiredVelocityY * this.motionSpeed - this.yd) * this.steeringFactor;
+        this.zd += (desiredVelocityZ * this.motionSpeed - this.zd) * this.steeringFactor;
 
         double intendedX = this.xd;
         double intendedY = this.yd;
@@ -150,11 +160,8 @@ public final class FireflyParticle extends TextureSheetParticle {
     }
 
     private void updateGlow() {
-        float wave = (Mth.sin(this.blinkPhase + this.age * this.blinkSpeed) + 1.0F) * 0.5F;
-        float pulse = 0.24F + 0.76F * smoothStep(wave);
-        float fadeIn = smoothStep(Mth.clamp((float) this.age / this.fadeInTicks, 0.0F, 1.0F));
-        float fadeOut = smoothStep(Mth.clamp((float) (this.lifetime - this.age) / this.fadeOutTicks, 0.0F, 1.0F));
-        this.alpha = this.maximumAlpha * pulse * fadeIn * fadeOut;
+        this.alpha = (float) FireflyTiming.glow(this.age, this.lifetime, this.fadeInTicks, this.fadeOutTicks,
+                this.maximumAlpha, this.minimumGlow, this.blinkPhase, this.blinkFrequencyHz);
     }
 
     private void updateSteering() {
@@ -166,7 +173,7 @@ public final class FireflyParticle extends TextureSheetParticle {
         double offsetY = this.y - this.originY;
         double offsetZ = this.z - this.originZ;
         double distanceSquared = offsetX * offsetX + offsetY * offsetY + offsetZ * offsetZ;
-        if (distanceSquared > MAX_ROAM_DISTANCE * MAX_ROAM_DISTANCE) {
+        if (distanceSquared > this.maxRoamDistance * this.maxRoamDistance) {
             double inverseDistance = 1.0 / Math.sqrt(distanceSquared);
             this.targetVelocityX = -offsetX * inverseDistance * 0.028;
             this.targetVelocityY = -offsetY * inverseDistance * 0.020;
@@ -181,20 +188,21 @@ public final class FireflyParticle extends TextureSheetParticle {
         this.targetVelocityX = randomBetween(-0.024, 0.024) + returnX;
         this.targetVelocityY = randomBetween(-0.014, 0.014) + returnY;
         this.targetVelocityZ = randomBetween(-0.024, 0.024) + returnZ;
-        this.steeringTicks = 45 + this.random.nextInt(76);
+        this.steeringTicks = randomTicks(this.minSteeringTicks, this.maxSteeringTicks);
     }
 
-    private static float smoothStep(float value) {
-        return value * value * (3.0F - 2.0F * value);
+    private int randomTicks(int a, int b) {
+        return Math.min(a, b) + this.random.nextInt(Math.abs(b - a) + 1);
     }
 
-    private double randomBetween(double minimum, double maximum) {
-        return minimum + this.random.nextDouble() * (maximum - minimum);
+    private double randomBetween(double a, double b) {
+        return Math.min(a, b) + this.random.nextDouble() * Math.abs(b - a);
     }
 
     @Override
     protected int getLightColor(float partialTick) {
-        return LightTexture.FULL_BRIGHT;
+        int light = super.getLightColor(partialTick);
+        return LightTexture.pack(Math.max(LightTexture.block(light), this.minimumLight), LightTexture.sky(light));
     }
 
     @Override

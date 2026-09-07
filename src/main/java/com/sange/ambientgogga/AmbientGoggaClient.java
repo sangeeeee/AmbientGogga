@@ -2,6 +2,7 @@ package com.sange.ambientgogga;
 
 import com.sange.ambientgogga.client.model.ButterflyModel;
 import com.sange.ambientgogga.client.ShichieichouClientConfig;
+import com.sange.ambientgogga.client.FireflyClientConfig;
 import com.sange.ambientgogga.client.particle.FireflyParticle;
 import com.sange.ambientgogga.client.particle.ShichieichouTrailParticle;
 import com.sange.ambientgogga.client.renderer.ButterflyRenderer;
@@ -20,6 +21,7 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 public class AmbientGoggaClient {
     public AmbientGoggaClient(IEventBus modEventBus, ModContainer container) {
         container.registerConfig(ModConfig.Type.CLIENT, ShichieichouClientConfig.SPEC);
+        container.registerConfig(ModConfig.Type.CLIENT, FireflyClientConfig.SPEC, FireflyClientConfig.FILE_NAME);
         modEventBus.addListener(AmbientGoggaClient::registerParticleProviders);
         modEventBus.addListener(AmbientGoggaClient::registerEntityRenderers);
         modEventBus.addListener(AmbientGoggaClient::registerLayerDefinitions);
