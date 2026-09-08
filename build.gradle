@@ -264,6 +264,15 @@ tasks.register('verifySeaFireConfig', JavaExec) {
 
 tasks.named('check') { dependsOn tasks.named('verifySeaFireRules'), tasks.named('verifySeaFireConfig') }
 
+tasks.register('verifySeaFireCurves', JavaExec) {
+    dependsOn tasks.named('animationTestClasses')
+    classpath = sourceSets.animationTest.runtimeClasspath
+    mainClass = 'com.sange.ambientgogga.client.SeaFireCurvesTest'
+    if (providers.gradleProperty('seaFireCurveBenchmark').isPresent()) args '--benchmark'
+}
+
+tasks.named('check') { dependsOn tasks.named('verifySeaFireCurves') }
+
 tasks.register('verifySeaFireShader', JavaExec) {
     dependsOn tasks.named('clientConfigTestClasses')
     classpath = sourceSets.clientConfigTest.runtimeClasspath

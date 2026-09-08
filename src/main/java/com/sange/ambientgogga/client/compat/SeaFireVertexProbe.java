@@ -15,6 +15,7 @@ public final class SeaFireVertexProbe implements AutoCloseable {
     private final int source;
     private int program, vao, input, feedback, output;
     private long fence;
+    private boolean layoutReady;
     private final List<Attribute> attributes = new ArrayList<>();
     private final List<UniformCopy> uniforms = new ArrayList<>();
     private int stride;
@@ -110,15 +111,22 @@ public final class SeaFireVertexProbe implements AutoCloseable {
         GL30.glBindVertexArray(vao);
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, input);
         GL15.glBufferData(GL15.GL_ARRAY_BUFFER, vertices, GL15.GL_STREAM_DRAW);
-        for (var attr : attributes) {
-            GL20.glEnableVertexAttribArray(attr.location);
-            if (attr.integer) GL30.glVertexAttribIPointer(attr.location, attr.components, GL11.GL_INT, stride, attr.offset);
-            else GL20.glVertexAttribPointer(attr.location, attr.components, GL11.GL_FLOAT, false, stride, attr.offset);
+        if (!layoutReady) {
+            for (var attr : attributes) {
+                GL20.glEnableVertexAttribArray(attr.location);
+                if (attr.integer) GL30.glVertexAttribIPointer(attr.location, attr.components, GL11.GL_INT, stride, attr.offset);
+                else GL20.glVertexAttribPointer(attr.location, attr.components, GL11.GL_FLOAT, false, stride, attr.offset);
+            }
         }
         GL40.glBindTransformFeedback(GL40.GL_TRANSFORM_FEEDBACK, feedback);
         GL15.glBindBuffer(GL30.GL_TRANSFORM_FEEDBACK_BUFFER, output);
-        GL15.glBufferData(GL30.GL_TRANSFORM_FEEDBACK_BUFFER, (long) points * 8 * 4, GL15.GL_STREAM_READ);
-        GL30.glBindBufferBase(GL30.GL_TRANSFORM_FEEDBACK_BUFFER, 0, output);
+        if (!layoutReady) {
+            // The next submission is allowed only after the previous fence and readback complete.
+            // The private output buffer and its transform-feedback binding can therefore be reused.
+            GL15.glBufferData(GL30.GL_TRANSFORM_FEEDBACK_BUFFER, (long) points * 8 * 4, GL15.GL_STREAM_READ);
+            GL30.glBindBufferBase(GL30.GL_TRANSFORM_FEEDBACK_BUFFER, 0, output);
+            layoutReady = true;
+        }
         GL11.glEnable(GL30.GL_RASTERIZER_DISCARD);
         GL30.glBeginTransformFeedback(GL11.GL_POINTS);
         try { GL11.glDrawArrays(GL11.GL_POINTS, 0, points * 2); }

@@ -1,7 +1,7 @@
 package com.sange.ambientgogga.client.particle;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.sange.ambientgogga.client.FireflyTiming;
+import com.sange.ambientgogga.client.SeaFireCurves;
 import com.sange.ambientgogga.client.SeaFireClientConfig;
 import com.sange.ambientgogga.client.SeaFireEmission;
 import com.sange.ambientgogga.client.SeaFireGeometry;
@@ -27,8 +27,10 @@ public final class SeaFireParticle extends TextureSheetParticle {
     private static final WeakHashMap<SeaFireParticle, Boolean> LIVE = new WeakHashMap<>();
     private static WeakReference<ClientLevel> trackedLevel = new WeakReference<>(null);
     private final int waterY, minimumLight;
-    private final double speed, phase, blinkHz, peakAlpha, minimumGlow;
-    private double heading;
+    private final double blinkStep, peakAlpha, minimumGlow;
+    private final int track;
+    private int pathStep;
+    private double driftCos, driftSin, blinkPhase;
     private float previousAlpha;
     public static boolean hasLiveParticles() { return !LIVE.isEmpty(); }
 
@@ -50,12 +52,17 @@ public final class SeaFireParticle extends TextureSheetParticle {
         double sizeSample = random.nextDouble();
         quadSize = (float) (small + sizeSample * sizeSample * (large - small));
         peakAlpha = between(SeaFireClientConfig.MIN_ALPHA.get(), SeaFireClientConfig.MAX_ALPHA.get());
-        blinkHz = between(SeaFireClientConfig.MIN_BLINK_HZ.get(), SeaFireClientConfig.MAX_BLINK_HZ.get());
+        blinkStep = between(SeaFireClientConfig.MIN_BLINK_HZ.get(), SeaFireClientConfig.MAX_BLINK_HZ.get())
+                * SeaFireCurves.STEPS / 20;
         minimumGlow = SeaFireClientConfig.MIN_GLOW.get();
         minimumLight = SeaFireClientConfig.LIGHT.get();
-        speed = SeaFireClientConfig.SPEED.get() * between(0.4, 1);
-        phase = random.nextDouble() * Math.PI * 2;
-        heading = random.nextDouble() * Math.PI * 2;
+        double speed = SeaFireClientConfig.SPEED.get() * between(0.4, 1);
+        blinkPhase = random.nextDouble() * SeaFireCurves.STEPS;
+        double rotation = random.nextDouble() * Math.PI * 2;
+        driftCos = Math.cos(rotation) * speed;
+        driftSin = Math.sin(rotation) * speed;
+        track = random.nextInt(SeaFireCurves.TRACKS);
+        pathStep = random.nextInt(SeaFireCurves.STEPS);
         // Deep blue, electric blue and cyan; every color remains cooler than land fireflies.
         float tint = random.nextFloat();
         setColor(0.06F + tint * 0.10F, 0.27F + tint * 0.47F, 1.0F);
@@ -78,18 +85,25 @@ public final class SeaFireParticle extends TextureSheetParticle {
             remove();
             return;
         }
-        heading += Math.sin(phase + age * 0.035) * 0.045;
-        double nextX = x + Math.cos(heading) * speed;
-        double nextZ = z + Math.sin(heading) * speed;
+        float vx = SeaFireCurves.x(track, pathStep), vz = SeaFireCurves.z(track, pathStep);
+        pathStep = (pathStep + 1) & (SeaFireCurves.STEPS - 1);
+        double nextX = x + vx * driftCos - vz * driftSin;
+        double nextZ = z + vx * driftSin + vz * driftCos;
         // Keep all four corners over water, including at diagonals and shore edges.
-        if (fits(level, nextX, waterY, nextZ, quadSize)) {
+        if (SeaFireCurves.sameFootprint(x, z, nextX, nextZ, quadSize)
+                || fits(level, nextX, waterY, nextZ, quadSize)) {
             setPos(nextX, SeaFireSurface.height(level, Mth.floor(nextX), waterY, Mth.floor(nextZ)), nextZ);
         } else {
-            heading += Math.PI * 0.65;
+            // Rotate the precomputed track at a shore collision without runtime trigonometry.
+            double oldCos = driftCos;
+            driftCos = -0.453990499739547 * oldCos - 0.891006524188368 * driftSin;
+            driftSin = 0.891006524188368 * oldCos - 0.453990499739547 * driftSin;
         }
         double night = SeaFireSpawner.activity(level);
-        alpha = (float) (FireflyTiming.glow(age, lifetime, Math.min(20, lifetime), Math.min(40, lifetime),
-                peakAlpha, minimumGlow, phase, blinkHz) * night);
+        blinkPhase += blinkStep;
+        if (blinkPhase >= SeaFireCurves.STEPS) blinkPhase -= SeaFireCurves.STEPS;
+        alpha = (float) (peakAlpha * (minimumGlow + (1 - minimumGlow) * SeaFireCurves.blink(blinkPhase))
+                * SeaFireCurves.fade(age, lifetime) * night);
     }
 
     private static boolean fits(ClientLevel level, double x, int y, double z, double size) {
@@ -118,6 +132,10 @@ public final class SeaFireParticle extends TextureSheetParticle {
 
     @Override
     public void render(VertexConsumer buffer, Camera camera, float partialTick) {
+        float opacity = Mth.lerp(partialTick, previousAlpha, alpha);
+        boolean emissive = SeaFireRenderType.INSTANCE.emissiveBatch();
+        float brightness = emissive ? opacity * SeaFireRenderType.INSTANCE.strength() : 1;
+        if (opacity <= 0 || (emissive && brightness < 1 / 255F)) return;
         var eye = camera.getPosition();
         float px = (float) (Mth.lerp(partialTick, xo, x) - eye.x);
         double surfaceHeight = Mth.lerp(partialTick, yo, y);
@@ -125,12 +143,8 @@ public final class SeaFireParticle extends TextureSheetParticle {
                 ? SeaFireVegetationWaves.height(Mth.lerp(partialTick, xo, x), Mth.lerp(partialTick, zo, z)) : 0;
         float py = (float) (SeaFireGeometry.bottom(surfaceHeight, eye.y, quadSize, lift) - eye.y);
         float pz = (float) (Mth.lerp(partialTick, zo, z) - eye.z);
-        float opacity = Mth.lerp(partialTick, previousAlpha, alpha);
-        boolean emissive = SeaFireRenderType.INSTANCE.emissiveBatch();
         int light = emissive ? 0 : SeaFireShaderCompat.markLight(getLightColor(partialTick));
         // Native emissive passes may use additive blending and ignore vertex alpha.
-        float brightness = emissive ? opacity * SeaFireRenderType.INSTANCE.strength() : 1;
-        if (emissive && brightness < 1 / 255F) return;
         float vertexAlpha = emissive ? 1 : opacity;
         float red = emissive ? SeaFireEmission.scale(rCol, brightness) : rCol;
         float green = emissive ? SeaFireEmission.scale(gCol, brightness) : gCol;

@@ -39,7 +39,9 @@ public final class SeaFireVegetationWaves {
     public static void render(RenderLevelStageEvent event) {
         // This stage also fires over empty ocean where no cutout chunk geometry was submitted.
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_ENTITIES) return;
-        if (!SeaFireShaderCompat.useVegetation() || !SeaFireParticle.hasLiveParticles()) {
+        if (!SeaFireShaderCompat.useVegetation() || !SeaFireParticle.hasLiveParticles()
+                || SeaFireClientConfig.VEGETATION_STRENGTH.get() <= 0
+                || SeaFireClientConfig.VEGETATION_MAX_HEIGHT.get() <= 0) {
             release();
             return;
         }

@@ -54,6 +54,9 @@ public final class SeaFireVegetationProbeTest {
             long total = 0;
             try (var probe = new SeaFireVertexProbe(source, positions.length / 3)) {
                 for (int frame = 0; frame < 50; frame++) {
+                    float time = 1 + frame * 0.13F;
+                    GL20.glUseProgram(source);
+                    GL20.glUniform1f(GL20.glGetUniformLocation(source, "frameTimeCounter"), time);
                     long start = System.nanoTime();
                     SeaFireProbeStateCheck.run(() -> probe.submit(positions, 42, inverse));
                     total += System.nanoTime() - start;
@@ -62,7 +65,7 @@ public final class SeaFireVegetationProbeTest {
                     float[] result = probe.poll(0.5F, 0.12F);
                     require(result != null, "Completed feedback was not readable");
                     for (int i = 0; i < result.length; i++) {
-                        float expected = (float) Math.abs(Math.sin(1 + positions[i * 3] * 0.1) * 0.1);
+                        float expected = (float) Math.abs(Math.sin(time + positions[i * 3] * 0.1) * 0.1);
                         near(result[i], expected, 0.002F, "Perspective reconstruction or material tagging");
                     }
                     require(GL11.glGetError() == GL11.GL_NO_ERROR, "OpenGL probe error");
