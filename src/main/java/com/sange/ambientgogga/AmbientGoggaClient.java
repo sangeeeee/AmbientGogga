@@ -3,6 +3,8 @@ package com.sange.ambientgogga;
 import com.sange.ambientgogga.client.model.ButterflyModel;
 import com.sange.ambientgogga.client.ShichieichouClientConfig;
 import com.sange.ambientgogga.client.FireflyClientConfig;
+import com.sange.ambientgogga.client.SeaFireClientConfig;
+import com.sange.ambientgogga.client.particle.SeaFireParticle;
 import com.sange.ambientgogga.client.particle.FireflyParticle;
 import com.sange.ambientgogga.client.particle.ShichieichouTrailParticle;
 import com.sange.ambientgogga.client.renderer.ButterflyRenderer;
@@ -22,6 +24,7 @@ public class AmbientGoggaClient {
     public AmbientGoggaClient(IEventBus modEventBus, ModContainer container) {
         container.registerConfig(ModConfig.Type.CLIENT, ShichieichouClientConfig.SPEC);
         container.registerConfig(ModConfig.Type.CLIENT, FireflyClientConfig.SPEC, FireflyClientConfig.FILE_NAME);
+        container.registerConfig(ModConfig.Type.CLIENT, SeaFireClientConfig.SPEC, SeaFireClientConfig.FILE_NAME);
         modEventBus.addListener(AmbientGoggaClient::registerParticleProviders);
         modEventBus.addListener(AmbientGoggaClient::registerEntityRenderers);
         modEventBus.addListener(AmbientGoggaClient::registerLayerDefinitions);
@@ -29,6 +32,7 @@ public class AmbientGoggaClient {
 
     private static void registerParticleProviders(RegisterParticleProvidersEvent event) {
         event.registerSpriteSet(ModParticles.FIREFLY.get(), FireflyParticle.Provider::new);
+        event.registerSpriteSet(ModParticles.SEA_FIRE.get(), SeaFireParticle.Provider::new);
         event.registerSpriteSet(ModParticles.SHICHIEICHOU_TRAIL.get(), ShichieichouTrailParticle.Provider::new);
     }
 

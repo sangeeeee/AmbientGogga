@@ -1,0 +1,90 @@
+#Client-side Sea Fire particles. Durations use game ticks (20 ticks/second). Appearance changes affect new particles.
+[seaFire]
+	#Maximum tracked live Sea Fire particles per client; 0 disables spawning.
+	# Default: 12000
+	# Range: 0 ~ 16000
+	maxParticles = 12000
+	#Horizontal spawn radius around the camera in blocks.
+	# Default: 28.0
+	# Range: 4.0 ~ 64.0
+	spawnRadius = 28.0
+	#Uniform surface candidates per second at peak activity. Land, biome blending and particle settings reduce actual spawns.
+	# Default: 4000.0
+	# Range: 0.0 ~ 12000.0
+	candidateSpawnsPerSecond = 4000.0
+	#Distance in blocks to extend beyond beach water, with a smooth density falloff. Zero strictly limits spawning to beach biomes.
+	# Default: 16.0
+	# Range: 0.0 ~ 64.0
+	biomeBlendDistance = 16.0
+	#Enable natural Sea Fire spawning.
+	enabled = true
+
+	[seaFire.seasons]
+		#When Ecliptic Seasons is installed, restrict natural spawning to the six autumn solar terms. Ignored without that mod.
+		autumnOnly = false
+
+	[seaFire.appearance]
+		#Blink trough brightness relative to peak, excluding lifetime and daylight fading.
+		# Default: 0.75
+		# Range: 0.0 ~ 1.0
+		minimumGlowFraction = 0.75
+		#Maximum peak opacity of the blue glow.
+		# Default: 0.65
+		# Range: 0.0 ~ 1.0
+		maxPeakAlpha = 0.65
+		#Minimum rendered block light. Particles never illuminate surrounding blocks.
+		# Default: 11
+		# Range: 0 ~ 15
+		minimumLight = 11
+		#Maximum smooth flashes per second.
+		# Default: 0.16
+		# Range: 0.01 ~ 3.0
+		maxBlinkFrequencyHz = 0.16
+		#Minimum smooth flashes per second.
+		# Default: 0.08
+		# Range: 0.01 ~ 3.0
+		minBlinkFrequencyHz = 0.08
+		#Minimum square half-size in blocks; most particles favor the smaller end of the range.
+		# Default: 0.006
+		# Range: 0.001 ~ 0.1
+		minSize = 0.006
+		#Maximum square half-size in blocks; reversed size bounds are swapped.
+		# Default: 0.018
+		# Range: 0.001 ~ 0.1
+		maxSize = 0.018
+		#Minimum peak opacity of the blue glow.
+		# Default: 0.35
+		# Range: 0.0 ~ 1.0
+		minPeakAlpha = 0.35
+
+	[seaFire.motion]
+		#Surface drift speed in blocks per tick; 0 is stationary. Particles cannot cross onto land or flowing water.
+		# Default: 0.0015
+		# Range: 0.0 ~ 0.02
+		driftSpeed = 0.0015
+		#Maximum lifetime in ticks.
+		# Default: 160
+		# Range: 1 ~ 1200
+		maxLifetimeTicks = 160
+		#Minimum lifetime in ticks.
+		# Default: 80
+		# Range: 1 ~ 1200
+		minLifetimeTicks = 80
+
+	[seaFire.timing]
+		#Ticks to fade density to zero; the complete window is capped at one day.
+		# Default: 2000
+		# Range: 0 ~ 24000
+		rampDownTicks = 2000
+		#Ticks to increase density from zero to its peak.
+		# Default: 3500
+		# Range: 0 ~ 24000
+		rampUpTicks = 3500
+		#Activity window start: 0 sunrise, 12000 sunset, 18000 midnight.
+		# Default: 12500
+		# Range: 0 ~ 23999
+		nightStartTick = 12500
+		#Ticks at peak density.
+		# Default: 6000
+		# Range: 0 ~ 24000
+		peakTicks = 6000

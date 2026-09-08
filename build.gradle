@@ -247,6 +247,23 @@ tasks.register('verifyFireflyConfig', JavaExec) {
 
 tasks.named('check') { dependsOn tasks.named('verifyFireflyConfig') }
 
+tasks.register('verifySeaFireRules', JavaExec) {
+    dependsOn tasks.named('animationTestClasses')
+    classpath = sourceSets.animationTest.runtimeClasspath
+    mainClass = 'com.sange.ambientgogga.client.SeaFireRulesTest'
+}
+
+tasks.register('verifySeaFireConfig', JavaExec) {
+    dependsOn tasks.named('clientConfigTestClasses')
+    classpath = sourceSets.clientConfigTest.runtimeClasspath
+    mainClass = 'com.sange.ambientgogga.client.SeaFireConfigTest'
+    args layout.buildDirectory.file('verification/ambientgogga-sea-fire-client.toml').get().asFile.absolutePath
+    workingDir layout.buildDirectory.dir('verification/sea-fire')
+    doFirst { workingDir.mkdirs() }
+}
+
+tasks.named('check') { dependsOn tasks.named('verifySeaFireRules'), tasks.named('verifySeaFireConfig') }
+
 tasks.named('jar', Jar).configure {
     from('LICENSE') {
         into 'META-INF'

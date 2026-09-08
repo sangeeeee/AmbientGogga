@@ -5,6 +5,7 @@ Ambient Gogga（氛围小虫）is a NeoForge mod for Minecraft 1.21.1 that adds 
 ## Features
 
 - Fireflies appear as lightweight client-side particles at night.
+- Sea Fire adds tiny blue squares drifting on still beach water at night, with smooth density falloff beyond beach boundaries and an optional autumn-only season. See [the Sea Fire guide](docs/sea-fire.md).
 - Firefly glow, size, blinking, spawning and timing are client-configurable. Optional Ecliptic Seasons integration provides all-year, summer-only and configurable realistic spawning. See [the firefly configuration guide](docs/fireflies.md).
 - Butterflies spawn naturally in suitable biomes, fly through the environment, rest on flowers, and react to players and weather.
 - Up to three butterflies can be captured in one butterfly bottle and released together while preserving their variants.
