@@ -3,6 +3,8 @@ package com.sange.ambientgogga.client.particle;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.sange.ambientgogga.client.FireflyTiming;
 import com.sange.ambientgogga.client.SeaFireClientConfig;
+import com.sange.ambientgogga.client.SeaFireEmission;
+import com.sange.ambientgogga.client.SeaFireGeometry;
 import com.sange.ambientgogga.client.SeaFireSpawner;
 import com.sange.ambientgogga.client.SeaFireSurface;
 import com.sange.ambientgogga.client.compat.SeaFireShaderCompat;
@@ -118,27 +120,41 @@ public final class SeaFireParticle extends TextureSheetParticle {
     public void render(VertexConsumer buffer, Camera camera, float partialTick) {
         var eye = camera.getPosition();
         float px = (float) (Mth.lerp(partialTick, xo, x) - eye.x);
-        float py = (float) (Mth.lerp(partialTick, yo, y) - eye.y);
-        if (SeaFireShaderCompat.useVegetation()) {
-            py += SeaFireVegetationWaves.height(Mth.lerp(partialTick, xo, x), Mth.lerp(partialTick, zo, z));
-        }
+        double surfaceHeight = Mth.lerp(partialTick, yo, y);
+        float lift = SeaFireShaderCompat.useVegetation()
+                ? SeaFireVegetationWaves.height(Mth.lerp(partialTick, xo, x), Mth.lerp(partialTick, zo, z)) : 0;
+        float py = (float) (SeaFireGeometry.bottom(surfaceHeight, eye.y, quadSize, lift) - eye.y);
         float pz = (float) (Mth.lerp(partialTick, zo, z) - eye.z);
-        int light = SeaFireShaderCompat.markLight(getLightColor(partialTick));
         float opacity = Mth.lerp(partialTick, previousAlpha, alpha);
+        boolean emissive = SeaFireRenderType.INSTANCE.emissiveBatch();
+        int light = emissive ? 0 : SeaFireShaderCompat.markLight(getLightColor(partialTick));
+        // Native emissive passes may use additive blending and ignore vertex alpha.
+        float brightness = emissive ? opacity * SeaFireRenderType.INSTANCE.strength() : 1;
+        if (emissive && brightness < 1 / 255F) return;
+        float vertexAlpha = emissive ? 1 : opacity;
+        float red = emissive ? SeaFireEmission.scale(rCol, brightness) : rCol;
+        float green = emissive ? SeaFireEmission.scale(gCol, brightness) : gCol;
+        float blue = emissive ? SeaFireEmission.scale(bCol, brightness) : bCol;
         // Rotate only around world Y. The lower edge stays at the water surface.
         double horizontalDistance = Math.hypot(px, pz);
         float rightX = horizontalDistance > 1e-6 ? (float) (-pz / horizontalDistance) : 1;
         float rightZ = horizontalDistance > 1e-6 ? (float) (px / horizontalDistance) : 0;
         float dx = rightX * quadSize, dz = rightZ * quadSize;
         float top = py + quadSize * 2;
-        buffer.addVertex(px - dx, py, pz - dz).setUv(getU0(), getV1()).setColor(rCol, gCol, bCol, opacity).setLight(light);
-        buffer.addVertex(px + dx, py, pz + dz).setUv(getU1(), getV1()).setColor(rCol, gCol, bCol, opacity).setLight(light);
-        buffer.addVertex(px + dx, top, pz + dz).setUv(getU1(), getV0()).setColor(rCol, gCol, bCol, opacity).setLight(light);
-        buffer.addVertex(px - dx, top, pz - dz).setUv(getU0(), getV0()).setColor(rCol, gCol, bCol, opacity).setLight(light);
+        vertex(buffer, px - dx, py, pz - dz, getU0(), getV1(), red, green, blue, vertexAlpha, light, emissive);
+        vertex(buffer, px + dx, py, pz + dz, getU1(), getV1(), red, green, blue, vertexAlpha, light, emissive);
+        vertex(buffer, px + dx, top, pz + dz, getU1(), getV0(), red, green, blue, vertexAlpha, light, emissive);
+        vertex(buffer, px - dx, top, pz - dz, getU0(), getV0(), red, green, blue, vertexAlpha, light, emissive);
+    }
+
+    private void vertex(VertexConsumer buffer, float x, float y, float z, float u, float v,
+                        float red, float green, float blue, float opacity, int light, boolean emissive) {
+        buffer.addVertex(x, y, z).setUv(u, v).setColor(red, green, blue, opacity);
+        if (!emissive) buffer.setLight(light);
     }
 
     @Override
-    public ParticleRenderType getRenderType() { return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT; }
+    public ParticleRenderType getRenderType() { return SeaFireRenderType.INSTANCE; }
 
     public static final class Provider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprites;

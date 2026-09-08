@@ -8,6 +8,8 @@ public final class SeaFireClientConfig {
     public static final ModConfigSpec SPEC;
     public static final ModConfigSpec.BooleanValue ENABLED, AUTUMN_ONLY;
     public static final ModConfigSpec.BooleanValue SHADER_WAVES, VEGETATION_WAVES;
+    public static final ModConfigSpec.BooleanValue SHADER_EMISSIVE;
+    public static final ModConfigSpec.DoubleValue SHADER_EMISSIVE_STRENGTH;
     public static final ModConfigSpec.DoubleValue VEGETATION_STRENGTH, VEGETATION_MAX_HEIGHT;
     public static final ModConfigSpec.DoubleValue SPAWN_RATE, RADIUS, BLEND_DISTANCE, MIN_SIZE, MAX_SIZE;
     public static final ModConfigSpec.DoubleValue MIN_ALPHA, MAX_ALPHA, MIN_BLINK_HZ, MAX_BLINK_HZ, SPEED;
@@ -35,6 +37,10 @@ public final class SeaFireClientConfig {
         MIN_ALPHA = number(b, "minPeakAlpha", 0.525, 0, 1, "Minimum peak opacity of the blue glow.");
         MAX_ALPHA = number(b, "maxPeakAlpha", 0.975, 0, 1, "Maximum peak opacity of the blue glow.");
         LIGHT = integer(b, "minimumLight", 11, 0, 15, "Minimum rendered block light. Particles never illuminate surrounding blocks.");
+        SHADER_EMISSIVE = b.comment("With Iris, render Sea Fire through the shader pack's native SpiderEyes emissive pass. Bloom depends on the pack. The exact Sea Fire water protocol retains priority; disable shaderWaterFollowing to use emissive rendering with that protocol pack.")
+                .define("shaderEmissive", true);
+        SHADER_EMISSIVE_STRENGTH = number(b, "shaderEmissiveStrength", 1, 0, 1,
+                "Color multiplier for the native Iris emissive pass. Lifetime and blinking also modulate RGB because some emissive shaders ignore vertex alpha. Does not add world lights.");
         MIN_BLINK_HZ = number(b, "minBlinkFrequencyHz", 0.08, 0.01, 3, "Minimum smooth flashes per second.");
         MAX_BLINK_HZ = number(b, "maxBlinkFrequencyHz", 0.16, 0.01, 3, "Maximum smooth flashes per second.");
         MIN_GLOW = number(b, "minimumGlowFraction", 0.75, 0, 1,

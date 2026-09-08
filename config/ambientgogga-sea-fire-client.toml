@@ -24,6 +24,10 @@
 		autumnOnly = false
 
 	[seaFire.appearance]
+		#Use the native Iris SpiderEyes emissive pass. Exact water-protocol rendering takes priority.
+		shaderEmissive = true
+		#RGB multiplier for native emissive rendering, also modulated by lifetime and blinking. No world lights.
+		shaderEmissiveStrength = 1.0
 		#Enable Iris motion integration; exact wave protocol takes priority over experimental vegetation motion.
 		shaderWaterFollowing = true
 		#Sample vegetation-tag motion on a shared grid without editing shader packs. Unsupported layouts use the vanilla surface.

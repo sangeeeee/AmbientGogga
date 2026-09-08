@@ -284,6 +284,16 @@ tasks.register('verifySeaFireVegetationProbe', JavaExec) {
     doFirst { workingDir.mkdirs() }
 }
 
+tasks.register('verifySeaFireEmissive', JavaExec) {
+    dependsOn tasks.named('clientConfigTestClasses')
+    classpath = sourceSets.clientConfigTest.runtimeClasspath
+    mainClass = 'com.sange.ambientgogga.client.SeaFireEmissiveCheck'
+    args providers.gradleProperty('seaFireProbeShaderPack').getOrElse(
+            layout.buildDirectory.file('compat/Eclipse-Shader-SeaFire.zip').get().asFile.absolutePath)
+    workingDir layout.buildDirectory.dir('verification/sea-fire')
+    doFirst { workingDir.mkdirs() }
+}
+
 tasks.named('jar', Jar).configure {
     from('LICENSE') {
         into 'META-INF'

@@ -15,18 +15,22 @@ public final class SeaFireShaderCompat {
     public static final String PROTOCOL = "ambientgogga.seaFireWaveProtocol=1";
     private static final int LIGHT_MARKER = 0x000F000F;
     private static Api api;
-    private static boolean attempted, warned, active, vegetation;
+    private static boolean attempted, warned, active, vegetation, emissive, deferredEmissive;
     private static String packName;
     private static long nextProbe;
 
     public static int markLight(int light) { return active ? light | LIGHT_MARKER : light; }
     public static boolean useVegetation() { return vegetation; }
+    public static boolean useEmissive() { return emissive; }
+    public static boolean deferredEmissive() { return emissive && deferredEmissive; }
 
     /** Called once per client tick, never per vertex; file capability checks are throttled. */
     public static void refresh() {
         active = false;
         vegetation = false;
-        if (!SeaFireClientConfig.SHADER_WAVES.get() || !ModList.get().isLoaded("iris")) return;
+        emissive = false;
+        deferredEmissive = false;
+        if (!ModList.get().isLoaded("iris")) return;
         try {
             if (!attempted) {
                 attempted = true;
@@ -45,9 +49,12 @@ public final class SeaFireShaderCompat {
                 Path root = ((Path) api.directory.invoke(null)).toAbsolutePath().normalize();
                 Path path = root.resolve(name).normalize();
                 api.supported = path.startsWith(root) && supports(path);
+                api.deferred = path.startsWith(root) && usesDeferredEyes(path);
             }
-            active = api.supported;
-            vegetation = !active && SeaFireClientConfig.VEGETATION_WAVES.get();
+            active = api.supported && SeaFireClientConfig.SHADER_WAVES.get();
+            vegetation = !active && SeaFireClientConfig.SHADER_WAVES.get() && SeaFireClientConfig.VEGETATION_WAVES.get();
+            emissive = !active && SeaFireClientConfig.SHADER_EMISSIVE.get();
+            deferredEmissive = api.deferred;
         } catch (ReflectiveOperationException | IOException | RuntimeException | LinkageError error) {
             if (api != null) api.supported = false;
             if (!warned) {
@@ -76,12 +83,46 @@ public final class SeaFireShaderCompat {
         return text.length() <= 4096 && text.lines().anyMatch(line -> line.strip().equals(PROTOCOL));
     }
 
-    public static void reset() { active = false; vegetation = false; packName = null; nextProbe = 0; }
+    /** Photon 1.21.1 writes eye geometry into the opaque G-buffer, not the final color buffer. */
+    public static boolean usesDeferredEyes(Path pack) throws IOException {
+        String entry = "shaders/world0/gbuffers_spidereyes.fsh";
+        String implementation = "shaders/program/gbuffers_all_solid.fsh";
+        String eyes, solid;
+        if (Files.isDirectory(pack)) {
+            eyes = boundedText(pack.resolve(entry));
+            solid = boundedText(pack.resolve(implementation));
+        } else if (Files.isRegularFile(pack)) {
+            try (ZipFile zip = new ZipFile(pack.toFile())) {
+                eyes = boundedText(zip, entry);
+                solid = boundedText(zip, implementation);
+            }
+        } else return false;
+        // Match the actual shader layout, so renamed Photon archives work as well.
+        return eyes.contains("PROGRAM_GBUFFERS_SPIDEREYES")
+                && eyes.contains("\"/program/gbuffers_all_solid.fsh\"")
+                && solid.contains("Photon Shader by SixthSurge")
+                && solid.contains("gbuffer_data_0") && solid.contains("pack_unorm_2x8");
+    }
+
+    private static String boundedText(Path path) throws IOException {
+        return Files.isRegularFile(path) && Files.size(path) <= 131072 ? Files.readString(path) : "";
+    }
+
+    private static String boundedText(ZipFile zip, String name) throws IOException {
+        var entry = zip.getEntry(name);
+        if (entry == null || entry.getSize() > 131072) return "";
+        try (var input = zip.getInputStream(entry)) {
+            byte[] bytes = input.readNBytes(131073);
+            return bytes.length > 131072 ? "" : new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
+        }
+    }
+
+    public static void reset() { active = false; vegetation = false; emissive = false; deferredEmissive = false; packName = null; nextProbe = 0; }
 
     private static final class Api {
         final Object instance;
         final Method inUse, packName, directory;
-        boolean supported;
+        boolean supported, deferred;
         Api(Object instance, Method inUse, Method packName, Method directory) {
             this.instance = instance; this.inUse = inUse; this.packName = packName; this.directory = directory;
         }
