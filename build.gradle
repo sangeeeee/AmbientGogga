@@ -264,6 +264,26 @@ tasks.register('verifySeaFireConfig', JavaExec) {
 
 tasks.named('check') { dependsOn tasks.named('verifySeaFireRules'), tasks.named('verifySeaFireConfig') }
 
+tasks.register('verifySeaFireShader', JavaExec) {
+    dependsOn tasks.named('clientConfigTestClasses')
+    classpath = sourceSets.clientConfigTest.runtimeClasspath
+    mainClass = 'com.sange.ambientgogga.client.SeaFireShaderCompileCheck'
+    args layout.buildDirectory.file('compat/Eclipse-Shader-SeaFire.zip').get().asFile.absolutePath
+    workingDir layout.buildDirectory.dir('verification/sea-fire')
+    doFirst { workingDir.mkdirs() }
+}
+
+tasks.register('verifySeaFireVegetationProbe', JavaExec) {
+    dependsOn tasks.named('clientConfigTestClasses')
+    classpath = sourceSets.clientConfigTest.runtimeClasspath
+    mainClass = 'com.sange.ambientgogga.client.SeaFireVegetationProbeTest'
+    if (providers.gradleProperty('seaFireProbeShaderPack').isPresent()) {
+        args providers.gradleProperty('seaFireProbeShaderPack').get()
+    }
+    workingDir layout.buildDirectory.dir('verification/sea-fire')
+    doFirst { workingDir.mkdirs() }
+}
+
 tasks.named('jar', Jar).configure {
     from('LICENSE') {
         into 'META-INF'

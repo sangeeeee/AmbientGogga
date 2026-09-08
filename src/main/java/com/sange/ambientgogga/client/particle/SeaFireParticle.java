@@ -5,6 +5,8 @@ import com.sange.ambientgogga.client.FireflyTiming;
 import com.sange.ambientgogga.client.SeaFireClientConfig;
 import com.sange.ambientgogga.client.SeaFireSpawner;
 import com.sange.ambientgogga.client.SeaFireSurface;
+import com.sange.ambientgogga.client.compat.SeaFireShaderCompat;
+import com.sange.ambientgogga.client.compat.SeaFireVegetationWaves;
 import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
 import net.minecraft.client.Camera;
@@ -26,6 +28,7 @@ public final class SeaFireParticle extends TextureSheetParticle {
     private final double speed, phase, blinkHz, peakAlpha, minimumGlow;
     private double heading;
     private float previousAlpha;
+    public static boolean hasLiveParticles() { return !LIVE.isEmpty(); }
 
     public static boolean hasCapacity(ClientLevel level) {
         if (trackedLevel.get() != level) {
@@ -116,8 +119,11 @@ public final class SeaFireParticle extends TextureSheetParticle {
         var eye = camera.getPosition();
         float px = (float) (Mth.lerp(partialTick, xo, x) - eye.x);
         float py = (float) (Mth.lerp(partialTick, yo, y) - eye.y);
+        if (SeaFireShaderCompat.useVegetation()) {
+            py += SeaFireVegetationWaves.height(Mth.lerp(partialTick, xo, x), Mth.lerp(partialTick, zo, z));
+        }
         float pz = (float) (Mth.lerp(partialTick, zo, z) - eye.z);
-        int light = getLightColor(partialTick);
+        int light = SeaFireShaderCompat.markLight(getLightColor(partialTick));
         float opacity = Mth.lerp(partialTick, previousAlpha, alpha);
         // Rotate only around world Y. The lower edge stays at the water surface.
         double horizontalDistance = Math.hypot(px, pz);

@@ -7,6 +7,8 @@ public final class SeaFireClientConfig {
     public static final String FILE_NAME = "ambientgogga-sea-fire-client.toml";
     public static final ModConfigSpec SPEC;
     public static final ModConfigSpec.BooleanValue ENABLED, AUTUMN_ONLY;
+    public static final ModConfigSpec.BooleanValue SHADER_WAVES, VEGETATION_WAVES;
+    public static final ModConfigSpec.DoubleValue VEGETATION_STRENGTH, VEGETATION_MAX_HEIGHT;
     public static final ModConfigSpec.DoubleValue SPAWN_RATE, RADIUS, BLEND_DISTANCE, MIN_SIZE, MAX_SIZE;
     public static final ModConfigSpec.DoubleValue MIN_ALPHA, MAX_ALPHA, MIN_BLINK_HZ, MAX_BLINK_HZ, SPEED;
     public static final ModConfigSpec.DoubleValue MIN_GLOW;
@@ -30,13 +32,21 @@ public final class SeaFireClientConfig {
         b.pop().push("appearance");
         MIN_SIZE = number(b, "minSize", 0.006, 0.001, 0.1, "Minimum square half-size in blocks; most particles favor the smaller end of the range.");
         MAX_SIZE = number(b, "maxSize", 0.018, 0.001, 0.1, "Maximum square half-size in blocks; reversed size bounds are swapped.");
-        MIN_ALPHA = number(b, "minPeakAlpha", 0.35, 0, 1, "Minimum peak opacity of the blue glow.");
-        MAX_ALPHA = number(b, "maxPeakAlpha", 0.65, 0, 1, "Maximum peak opacity of the blue glow.");
+        MIN_ALPHA = number(b, "minPeakAlpha", 0.525, 0, 1, "Minimum peak opacity of the blue glow.");
+        MAX_ALPHA = number(b, "maxPeakAlpha", 0.975, 0, 1, "Maximum peak opacity of the blue glow.");
         LIGHT = integer(b, "minimumLight", 11, 0, 15, "Minimum rendered block light. Particles never illuminate surrounding blocks.");
         MIN_BLINK_HZ = number(b, "minBlinkFrequencyHz", 0.08, 0.01, 3, "Minimum smooth flashes per second.");
         MAX_BLINK_HZ = number(b, "maxBlinkFrequencyHz", 0.16, 0.01, 3, "Maximum smooth flashes per second.");
         MIN_GLOW = number(b, "minimumGlowFraction", 0.75, 0, 1,
                 "Blink trough brightness as a fraction of each particle's peak, excluding spawn/despawn and daylight fading; 1 disables blinking.");
+        SHADER_WAVES = b.comment("Enable Iris motion integration. Compatible packs use the exact wave protocol; other packs may use experimental vegetation sampling below.")
+                .define("shaderWaterFollowing", true);
+        VEGETATION_WAVES = b.comment("For Iris packs without the exact wave protocol, sample vegetation-tag vertex motion on a shared 17x17 grid at up to 10 Hz. Experimental; no shader-pack edits. Unsupported shaders keep the vanilla surface.")
+                .define("experimentalVegetationMotion", true);
+        VEGETATION_STRENGTH = number(b, "vegetationMotionStrength", 0.5, 0, 2,
+                "Scale the magnitude of sampled vertical vegetation motion. This approximates gentle floating, not the shader's actual water surface.");
+        VEGETATION_MAX_HEIGHT = number(b, "vegetationMaxLift", 0.12, 0, 0.5,
+                "Maximum visual lift above vanilla water in blocks. Downward plant bending is reflected upward to prevent sinking into flat water.");
         b.pop().push("motion");
         SPEED = number(b, "driftSpeed", 0.0015, 0, 0.02, "Surface drift speed in blocks per tick; 0 is stationary. Particles cannot cross onto land or flowing water.");
         MIN_LIFETIME = integer(b, "minLifetimeTicks", 80, 1, 1200, "Minimum lifetime in ticks.");

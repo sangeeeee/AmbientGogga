@@ -2,6 +2,7 @@ package com.sange.ambientgogga.client;
 
 import com.sange.ambientgogga.AmbientGogga;
 import com.sange.ambientgogga.client.compat.EclipticSeasonsCompat;
+import com.sange.ambientgogga.client.compat.SeaFireShaderCompat;
 import com.sange.ambientgogga.client.particle.SeaFireParticle;
 import com.sange.ambientgogga.particle.ModParticles;
 import net.minecraft.client.Minecraft;
@@ -43,7 +44,9 @@ public final class SeaFireSpawner {
             SeaFireSurface.reset(level);
             activityLevel = null;
             activityTick = Long.MIN_VALUE;
+            SeaFireShaderCompat.reset();
         }
+        if (level != null) SeaFireShaderCompat.refresh();
         if (level == null || mc.player == null || mc.isPaused() || !SeaFireClientConfig.ENABLED.get()) {
             accumulator = 0;
             return;

@@ -24,14 +24,22 @@
 		autumnOnly = false
 
 	[seaFire.appearance]
+		#Enable Iris motion integration; exact wave protocol takes priority over experimental vegetation motion.
+		shaderWaterFollowing = true
+		#Sample vegetation-tag motion on a shared grid without editing shader packs. Unsupported layouts use the vanilla surface.
+		experimentalVegetationMotion = true
+		#Scale the magnitude of vertical vegetation motion; this is approximate floating, not actual water height.
+		vegetationMotionStrength = 0.5
+		#Maximum visual lift in blocks. Downward plant bending is reflected upward to prevent sinking.
+		vegetationMaxLift = 0.12
 		#Blink trough brightness relative to peak, excluding lifetime and daylight fading.
 		# Default: 0.75
 		# Range: 0.0 ~ 1.0
 		minimumGlowFraction = 0.75
 		#Maximum peak opacity of the blue glow.
-		# Default: 0.65
+		# Default: 0.975
 		# Range: 0.0 ~ 1.0
-		maxPeakAlpha = 0.65
+		maxPeakAlpha = 0.975
 		#Minimum rendered block light. Particles never illuminate surrounding blocks.
 		# Default: 11
 		# Range: 0 ~ 15
@@ -53,9 +61,9 @@
 		# Range: 0.001 ~ 0.1
 		maxSize = 0.018
 		#Minimum peak opacity of the blue glow.
-		# Default: 0.35
+		# Default: 0.525
 		# Range: 0.0 ~ 1.0
-		minPeakAlpha = 0.35
+		minPeakAlpha = 0.525
 
 	[seaFire.motion]
 		#Surface drift speed in blocks per tick; 0 is stationary. Particles cannot cross onto land or flowing water.
