@@ -42,4 +42,4 @@ The compiled mod is written to `build/libs/`.
 
 ## License
 
-Ambient Gogga's original source code and original assets are available under the [MIT License](LICENSE). Third-party resources retain their respective upstream licenses and are not relicensed by the Ambient Gogga MIT license.
+Ambient Gogga is licensed under the [GNU General Public License version 3](LICENSE) (GPL-3.0-only), matching Terra Incognita's GPLv3 licensing. Copyright (c) 2026 Sange for original contributions. Third-party resources retain their original copyright and attribution; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
