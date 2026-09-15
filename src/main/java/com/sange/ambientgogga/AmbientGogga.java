@@ -5,6 +5,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.SpawnEggItem;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -13,6 +15,9 @@ import com.sange.ambientgogga.particle.ModParticles;
 import com.sange.ambientgogga.entity.ModEntities;
 import com.sange.ambientgogga.item.ButterflyBottleItem;
 import com.sange.ambientgogga.world.ShichieichouSpawner;
+import com.sange.ambientgogga.config.ServerConfig;
+import com.sange.ambientgogga.config.ConfigMigration;
+import net.neoforged.fml.loading.FMLPaths;
 
 @Mod(AmbientGogga.MODID)
 public class AmbientGogga {
@@ -34,7 +39,9 @@ public class AmbientGogga {
             () -> new Item(new Item.Properties())
     );
 
-    public AmbientGogga(IEventBus modEventBus) {
+    public AmbientGogga(IEventBus modEventBus, ModContainer container) {
+        ConfigMigration.server(FMLPaths.CONFIGDIR.get());
+        container.registerConfig(ModConfig.Type.SERVER, ServerConfig.SPEC, ServerConfig.FILE_NAME);
         ITEMS.register(modEventBus);
         ModParticles.register(modEventBus);
         ModEntities.register(modEventBus);

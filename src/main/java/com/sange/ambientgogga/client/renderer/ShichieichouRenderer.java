@@ -2,7 +2,7 @@ package com.sange.ambientgogga.client.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.sange.ambientgogga.AmbientGogga;
-import com.sange.ambientgogga.client.ShichieichouClientConfig;
+import com.sange.ambientgogga.config.ClientConfig;
 import com.sange.ambientgogga.client.model.ShichieichouAnimation;
 import com.sange.ambientgogga.client.model.ShichieichouModel;
 import com.sange.ambientgogga.entity.Shichieichou;
@@ -31,7 +31,7 @@ public final class ShichieichouRenderer extends MobRenderer<Shichieichou, Shichi
                     RenderType type = entity.isClientFadeGhost()
                             ? RenderType.entityTranslucent(ANATOMY) : RenderType.entityCutoutNoCull(ANATOMY);
                     int bodyLight = LightTexture.pack(Math.max(LightTexture.block(light),
-                            Math.min(12, ShichieichouClientConfig.MINIMUM_LIGHT.get() + 3)), LightTexture.sky(light));
+                            Math.min(12, ClientConfig.SHICHIEICHOU.MINIMUM_LIGHT.get() + 3)), LightTexture.sky(light));
                     getParentModel().renderAnatomy(stack, buffers.getBuffer(type), bodyLight,
                             getOverlayCoords(entity, 0.0F), -1);
                 }
@@ -54,7 +54,7 @@ public final class ShichieichouRenderer extends MobRenderer<Shichieichou, Shichi
 
     @Override
     protected int getBlockLightLevel(Shichieichou entity, BlockPos pos) {
-        return Math.max(ShichieichouClientConfig.MINIMUM_LIGHT.get(), super.getBlockLightLevel(entity, pos));
+        return Math.max(ClientConfig.SHICHIEICHOU.MINIMUM_LIGHT.get(), super.getBlockLightLevel(entity, pos));
     }
 
     @Override

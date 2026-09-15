@@ -1,0 +1,268 @@
+#Client-side firefly settings. Durations use game ticks (20 ticks/second). Appearance settings affect newly spawned particles.
+[fireflies]
+	#Maximum spawn attempts per second at the nightly peak; 0 disables spawning.
+	# Default: 10.0
+	# Range: 0.0 ~ 120.0
+	maxSpawnsPerSecond = 10.0
+	#Minimum horizontal distance from the player in blocks; reversed bounds are swapped automatically.
+	# Default: 1.5
+	# Range: 0.0 ~ 128.0
+	minSpawnDistance = 1.5
+	#Maximum distance above solid ground for a spawn location in blocks.
+	# Default: 5
+	# Range: 1 ~ 32
+	maxHeightAboveGround = 5
+	#Maximum horizontal distance from the player in blocks.
+	# Default: 56.0
+	# Range: 0.0 ~ 128.0
+	maxSpawnDistance = 56.0
+	#Maximum number of location attempts per particle. Each candidate must satisfy biome and terrain rules; the player's biome does not restrict spawning.
+	# Default: 24
+	# Range: 1 ~ 128
+	locationAttempts = 24
+	#Maximum height difference from the player in blocks.
+	# Default: 30
+	# Range: 0 ~ 128
+	maxVerticalDistance = 30
+	#Whether fireflies spawn naturally.
+	enabled = true
+
+	[fireflies.seasons]
+		#Firefly season: ALL_YEAR = all year, SUMMER_ONLY = summer only, REALISTIC = realistic (Greater Heat phenology preset by default).
+		#Restricts natural spawning only when Ecliptic Seasons is installed; otherwise this setting has no effect.
+		#Allowed Values: ALL_YEAR, SUMMER_ONLY, REALISTIC
+		fireflySeason = "ALL_YEAR"
+		#Allowed solar terms in realistic mode. Greater Heat approximates a 15-day midsummer phenology window, not a universal firefly calendar.
+		#Adjust for the region or species, for example by adding lesser_heat (Lesser Heat) or grain_in_ear (Grain in Ear).
+		realisticSolarTerms = ["greater_heat"]
+
+	[fireflies.appearance]
+		#Upper bound of randomized peak brightness; the current mean peak alpha is about 13% lower than before.
+		# Default: 0.88
+		# Range: 0.0 ~ 1.0
+		maxPeakAlpha = 0.88
+		#Minimum particle block light; preserves environmental light without illuminating nearby blocks. Previously fixed at full brightness.
+		# Default: 14
+		# Range: 0 ~ 15
+		minimumLight = 14
+		#Maximum flashes per second.
+		# Default: 0.27
+		# Range: 0.01 ~ 3.0
+		maxBlinkFrequencyHz = 0.27
+		#Minimum flashes per second; the current default is slightly faster than before.
+		# Default: 0.17
+		# Range: 0.01 ~ 3.0
+		minBlinkFrequencyHz = 0.17
+		#Brightness at the blink trough as a fraction of peak brightness; 0 allows complete darkness, 1 disables blinking.
+		# Default: 0.24
+		# Range: 0.0 ~ 1.0
+		minimumGlowFraction = 0.24
+		#Minimum particle quad half-size in blocks.
+		# Default: 0.018
+		# Range: 0.001 ~ 0.25
+		minSize = 0.018
+		#Maximum particle quad half-size; reduced by about 10% from the previous value of 0.060.
+		# Default: 0.054
+		# Range: 0.001 ~ 0.25
+		maxSize = 0.054
+		#Lower bound of randomized peak brightness (alpha).
+		# Default: 0.7
+		# Range: 0.0 ~ 1.0
+		minPeakAlpha = 0.7
+
+	[fireflies.motion]
+		#Minimum interval between choosing new flight directions in ticks.
+		# Default: 45
+		# Range: 1 ~ 1200
+		minDirectionChangeTicks = 45
+		#Flight sway frequency multiplier.
+		# Default: 1.0
+		# Range: 0.0 ~ 4.0
+		swayFrequencyMultiplier = 1.0
+		#Steering smoothing factor; smaller values produce gentler turns.
+		# Default: 0.055
+		# Range: 0.001 ~ 1.0
+		steeringFactor = 0.055
+		#Distance from the spawn position at which particles start returning, in blocks.
+		# Default: 12.0
+		# Range: 0.1 ~ 64.0
+		maxRoamDistance = 12.0
+		#Flight speed multiplier; 0 keeps particles stationary.
+		# Default: 1.0
+		# Range: 0.0 ~ 4.0
+		speedMultiplier = 1.0
+		#Maximum interval between choosing new flight directions in ticks.
+		# Default: 120
+		# Range: 1 ~ 1200
+		maxDirectionChangeTicks = 120
+
+	[fireflies.timing]
+		#Ticks to decrease the spawn rate to zero; the window may wrap across midnight and lasts at most one day.
+		# Default: 1000
+		# Range: 0 ~ 24000
+		rampDownTicks = 1000
+		#Ticks to increase the spawn rate from zero to its peak; 0 reaches the peak immediately.
+		# Default: 5000
+		# Range: 0 ~ 24000
+		rampUpTicks = 5000
+		#Spawn window start: 0 sunrise, 6000 noon, 12000 sunset, 18000 midnight.
+		# Default: 13000
+		# Range: 0 ~ 23999
+		nightStartTick = 13000
+		#Ticks to maintain the peak spawn rate.
+		# Default: 5000
+		# Range: 0 ~ 24000
+		peakTicks = 5000
+
+	[fireflies.lifetime]
+		#Minimum fade-out duration before disappearing in ticks.
+		# Default: 40
+		# Range: 1 ~ 12000
+		minFadeOutTicks = 40
+		#Maximum fade-in duration after spawning in ticks.
+		# Default: 50
+		# Range: 1 ~ 12000
+		maxFadeInTicks = 50
+		#Maximum particle lifetime in ticks.
+		# Default: 600
+		# Range: 1 ~ 12000
+		maxLifetimeTicks = 600
+		#Minimum particle lifetime in ticks.
+		# Default: 240
+		# Range: 1 ~ 12000
+		minLifetimeTicks = 240
+		#Maximum fade-out duration before disappearing in ticks. Fade durations cannot exceed the particle lifetime.
+		# Default: 80
+		# Range: 1 ~ 12000
+		maxFadeOutTicks = 80
+		#Minimum fade-in duration after spawning in ticks.
+		# Default: 20
+		# Range: 1 ~ 12000
+		minFadeInTicks = 20
+
+[shichieichou]
+	#Minimum local light on the butterfly (0-15). Lower this if your shader pack blooms too strongly.
+	# Default: 15
+	# Range: 0 ~ 15
+	minimumLight = 15
+	#Scale of the fine dust motes.
+	# Default: 1.0
+	# Range: 0.25 ~ 3.0
+	dustSize = 1.0
+	#Probability of emitting each dust candidate while flying or hovering; 1 keeps all, 0 disables the trail.
+	# Default: 0.3333333333333333
+	# Range: 0.0 ~ 1.0
+	dustDensity = 0.3333333333333333
+	#Maximum dust particles per butterfly per tick; 0 disables the trail.
+	# Default: 2
+	# Range: 0 ~ 4
+	dustPerTick = 2
+
+#Client-side Sea Fire particles. Durations use game ticks (20 ticks/second). Appearance changes affect new particles.
+[seaFire]
+	#Maximum tracked live Sea Fire particles per client; 0 disables spawning.
+	# Default: 12000
+	# Range: 0 ~ 16000
+	maxParticles = 12000
+	#Horizontal spawn radius around the camera in blocks.
+	# Default: 28.0
+	# Range: 4.0 ~ 64.0
+	spawnRadius = 28.0
+	#Uniform surface candidates per second at peak activity. Land, biome blending and particle settings reduce actual spawns.
+	# Default: 4000.0
+	# Range: 0.0 ~ 12000.0
+	candidateSpawnsPerSecond = 4000.0
+	#Distance in blocks to extend beyond beach water, with a smooth density falloff. Zero strictly limits spawning to beach biomes.
+	# Default: 16.0
+	# Range: 0.0 ~ 64.0
+	biomeBlendDistance = 16.0
+	#Enable natural Sea Fire spawning.
+	enabled = true
+
+	[seaFire.seasons]
+		#When Ecliptic Seasons is installed, restrict natural spawning to the six autumn solar terms. Ignored without that mod.
+		autumnOnly = false
+
+	[seaFire.appearance]
+		#Minimum rendered block light. Particles never illuminate surrounding blocks.
+		# Default: 11
+		# Range: 0 ~ 15
+		minimumLight = 11
+		#Maximum smooth flashes per second.
+		# Default: 0.16
+		# Range: 0.01 ~ 3.0
+		maxBlinkFrequencyHz = 0.16
+		#Maximum visual lift above vanilla water in blocks. Downward plant bending is reflected upward to prevent sinking into flat water.
+		# Default: 0.12
+		# Range: 0.0 ~ 0.5
+		vegetationMaxLift = 0.12
+		#Minimum smooth flashes per second.
+		# Default: 0.08
+		# Range: 0.01 ~ 3.0
+		minBlinkFrequencyHz = 0.08
+		#Enable Iris motion integration. Compatible packs use the exact wave protocol; other packs may use experimental vegetation sampling below.
+		shaderWaterFollowing = true
+		#Blink trough brightness as a fraction of each particle's peak, excluding spawn/despawn and daylight fading; 1 disables blinking.
+		# Default: 0.75
+		# Range: 0.0 ~ 1.0
+		minimumGlowFraction = 0.75
+		#Maximum square half-size in blocks; reversed size bounds are swapped.
+		# Default: 0.018
+		# Range: 0.001 ~ 0.1
+		maxSize = 0.018
+		#For Iris packs without the exact wave protocol, sample vegetation-tag vertex motion on a shared 17x17 grid at up to 10 Hz. Experimental; no shader-pack edits. Unsupported shaders keep the vanilla surface.
+		experimentalVegetationMotion = true
+		#Maximum peak opacity of the blue glow.
+		# Default: 0.975
+		# Range: 0.0 ~ 1.0
+		maxPeakAlpha = 0.975
+		#Color multiplier for the native Iris emissive pass. Lifetime and blinking also modulate RGB because some emissive shaders ignore vertex alpha. Does not add world lights.
+		# Default: 1.0
+		# Range: 0.0 ~ 1.0
+		shaderEmissiveStrength = 1.0
+		#Scale the magnitude of sampled vertical vegetation motion. This approximates gentle floating, not the shader's actual water surface.
+		# Default: 0.5
+		# Range: 0.0 ~ 2.0
+		vegetationMotionStrength = 0.5
+		#With Iris, render Sea Fire through the shader pack's native SpiderEyes emissive pass. Bloom depends on the pack. The exact Sea Fire water protocol retains priority; disable shaderWaterFollowing to use emissive rendering with that protocol pack.
+		shaderEmissive = true
+		#Minimum square half-size in blocks; most particles favor the smaller end of the range.
+		# Default: 0.006
+		# Range: 0.001 ~ 0.1
+		minSize = 0.006
+		#Minimum peak opacity of the blue glow.
+		# Default: 0.525
+		# Range: 0.0 ~ 1.0
+		minPeakAlpha = 0.525
+
+	[seaFire.motion]
+		#Surface drift speed in blocks per tick; 0 is stationary. Particles cannot cross onto land or flowing water.
+		# Default: 0.0015
+		# Range: 0.0 ~ 0.02
+		driftSpeed = 0.0015
+		#Maximum lifetime in ticks.
+		# Default: 160
+		# Range: 1 ~ 1200
+		maxLifetimeTicks = 160
+		#Minimum lifetime in ticks.
+		# Default: 80
+		# Range: 1 ~ 1200
+		minLifetimeTicks = 80
+
+	[seaFire.timing]
+		#Ticks to fade density to zero; the complete window is capped at one day.
+		# Default: 2000
+		# Range: 0 ~ 24000
+		rampDownTicks = 2000
+		#Ticks to increase density from zero to its peak.
+		# Default: 3500
+		# Range: 0 ~ 24000
+		rampUpTicks = 3500
+		#Activity window start: 0 sunrise, 12000 sunset, 18000 midnight.
+		# Default: 12500
+		# Range: 0 ~ 23999
+		nightStartTick = 12500
+		#Ticks at peak density.
+		# Default: 6000
+		# Range: 0 ~ 24000
+		peakTicks = 6000

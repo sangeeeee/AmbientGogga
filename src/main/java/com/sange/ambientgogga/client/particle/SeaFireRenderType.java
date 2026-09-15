@@ -7,7 +7,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.logging.LogUtils;
-import com.sange.ambientgogga.client.SeaFireClientConfig;
+import com.sange.ambientgogga.config.ClientConfig;
 import com.sange.ambientgogga.client.compat.SeaFireShaderCompat;
 import java.lang.reflect.Method;
 import net.minecraft.client.particle.ParticleRenderType;
@@ -27,7 +27,7 @@ public final class SeaFireRenderType implements ParticleRenderType {
         ShaderInstance shader = resolveShader();
         if (shader == null) return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT.begin(tesselator, textures);
         emissiveBatch = true;
-        strength = SeaFireClientConfig.SHADER_EMISSIVE_STRENGTH.get().floatValue();
+        strength = ClientConfig.SEA_FIRE.SHADER_EMISSIVE_STRENGTH.get().floatValue();
         RenderSystem.setShader(() -> shader);
         RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_PARTICLES);
         RenderSystem.enableBlend();

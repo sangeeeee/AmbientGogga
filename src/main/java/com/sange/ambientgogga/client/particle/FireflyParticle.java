@@ -1,6 +1,6 @@
 package com.sange.ambientgogga.client.particle;
 
-import com.sange.ambientgogga.client.FireflyClientConfig;
+import com.sange.ambientgogga.config.ClientConfig;
 import com.sange.ambientgogga.client.FireflyTiming;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
@@ -54,25 +54,25 @@ public final class FireflyParticle extends TextureSheetParticle {
         this.originX = x;
         this.originY = y;
         this.originZ = z;
-        this.lifetime = randomTicks(FireflyClientConfig.MIN_LIFETIME.get(), FireflyClientConfig.MAX_LIFETIME.get());
-        this.motionSpeed = FireflyClientConfig.MOTION_SPEED.get();
-        this.motionFrequency = FireflyClientConfig.MOTION_FREQUENCY.get();
-        this.steeringFactor = FireflyClientConfig.STEERING_FACTOR.get();
-        this.maxRoamDistance = FireflyClientConfig.ROAM_DISTANCE.get();
-        this.minSteeringTicks = FireflyClientConfig.MIN_STEERING_TICKS.get();
-        this.maxSteeringTicks = FireflyClientConfig.MAX_STEERING_TICKS.get();
-        this.minimumGlow = FireflyClientConfig.MIN_GLOW.get().floatValue();
-        this.minimumLight = FireflyClientConfig.MINIMUM_LIGHT.get();
+        this.lifetime = randomTicks(ClientConfig.FIREFLIES.MIN_LIFETIME.get(), ClientConfig.FIREFLIES.MAX_LIFETIME.get());
+        this.motionSpeed = ClientConfig.FIREFLIES.MOTION_SPEED.get();
+        this.motionFrequency = ClientConfig.FIREFLIES.MOTION_FREQUENCY.get();
+        this.steeringFactor = ClientConfig.FIREFLIES.STEERING_FACTOR.get();
+        this.maxRoamDistance = ClientConfig.FIREFLIES.ROAM_DISTANCE.get();
+        this.minSteeringTicks = ClientConfig.FIREFLIES.MIN_STEERING_TICKS.get();
+        this.maxSteeringTicks = ClientConfig.FIREFLIES.MAX_STEERING_TICKS.get();
+        this.minimumGlow = ClientConfig.FIREFLIES.MIN_GLOW.get().floatValue();
+        this.minimumLight = ClientConfig.FIREFLIES.MINIMUM_LIGHT.get();
         // Particle's velocity constructor randomizes input; start with the supplied velocity.
         this.xd = velocityX * this.motionSpeed;
         this.yd = velocityY * this.motionSpeed;
         this.zd = velocityZ * this.motionSpeed;
-        this.fadeInTicks = Math.min(this.lifetime, randomTicks(FireflyClientConfig.MIN_FADE_IN.get(), FireflyClientConfig.MAX_FADE_IN.get()));
-        this.fadeOutTicks = Math.min(this.lifetime, randomTicks(FireflyClientConfig.MIN_FADE_OUT.get(), FireflyClientConfig.MAX_FADE_OUT.get()));
-        this.quadSize = (float) randomBetween(FireflyClientConfig.MIN_SIZE.get(), FireflyClientConfig.MAX_SIZE.get());
-        this.maximumAlpha = (float) randomBetween(FireflyClientConfig.MIN_PEAK_ALPHA.get(), FireflyClientConfig.MAX_PEAK_ALPHA.get());
+        this.fadeInTicks = Math.min(this.lifetime, randomTicks(ClientConfig.FIREFLIES.MIN_FADE_IN.get(), ClientConfig.FIREFLIES.MAX_FADE_IN.get()));
+        this.fadeOutTicks = Math.min(this.lifetime, randomTicks(ClientConfig.FIREFLIES.MIN_FADE_OUT.get(), ClientConfig.FIREFLIES.MAX_FADE_OUT.get()));
+        this.quadSize = (float) randomBetween(ClientConfig.FIREFLIES.MIN_SIZE.get(), ClientConfig.FIREFLIES.MAX_SIZE.get());
+        this.maximumAlpha = (float) randomBetween(ClientConfig.FIREFLIES.MIN_PEAK_ALPHA.get(), ClientConfig.FIREFLIES.MAX_PEAK_ALPHA.get());
         this.blinkPhase = this.random.nextFloat() * Mth.TWO_PI;
-        this.blinkFrequencyHz = (float) randomBetween(FireflyClientConfig.MIN_BLINK_HZ.get(), FireflyClientConfig.MAX_BLINK_HZ.get());
+        this.blinkFrequencyHz = (float) randomBetween(ClientConfig.FIREFLIES.MIN_BLINK_HZ.get(), ClientConfig.FIREFLIES.MAX_BLINK_HZ.get());
         this.motionFrequencyX = randomBetween(0.025, 0.055);
         this.motionFrequencyY = randomBetween(0.020, 0.045);
         this.motionFrequencyZ = randomBetween(0.030, 0.060);

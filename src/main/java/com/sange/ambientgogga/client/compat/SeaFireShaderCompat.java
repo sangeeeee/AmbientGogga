@@ -1,7 +1,7 @@
 package com.sange.ambientgogga.client.compat;
 
 import com.mojang.logging.LogUtils;
-import com.sange.ambientgogga.client.SeaFireClientConfig;
+import com.sange.ambientgogga.config.ClientConfig;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
@@ -51,9 +51,9 @@ public final class SeaFireShaderCompat {
                 api.supported = path.startsWith(root) && supports(path);
                 api.deferred = path.startsWith(root) && usesDeferredEyes(path);
             }
-            active = api.supported && SeaFireClientConfig.SHADER_WAVES.get();
-            vegetation = !active && SeaFireClientConfig.SHADER_WAVES.get() && SeaFireClientConfig.VEGETATION_WAVES.get();
-            emissive = !active && SeaFireClientConfig.SHADER_EMISSIVE.get();
+            active = api.supported && ClientConfig.SEA_FIRE.SHADER_WAVES.get();
+            vegetation = !active && ClientConfig.SEA_FIRE.SHADER_WAVES.get() && ClientConfig.SEA_FIRE.VEGETATION_WAVES.get();
+            emissive = !active && ClientConfig.SEA_FIRE.SHADER_EMISSIVE.get();
             deferredEmissive = api.deferred;
         } catch (ReflectiveOperationException | IOException | RuntimeException | LinkageError error) {
             if (api != null) api.supported = false;

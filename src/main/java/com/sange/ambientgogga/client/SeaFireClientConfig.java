@@ -4,20 +4,17 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 
 /** Local surface-water particles; no world light sources or server simulation. */
 public final class SeaFireClientConfig {
-    public static final String FILE_NAME = "ambientgogga-sea-fire-client.toml";
-    public static final ModConfigSpec SPEC;
-    public static final ModConfigSpec.BooleanValue ENABLED, AUTUMN_ONLY;
-    public static final ModConfigSpec.BooleanValue SHADER_WAVES, VEGETATION_WAVES;
-    public static final ModConfigSpec.BooleanValue SHADER_EMISSIVE;
-    public static final ModConfigSpec.DoubleValue SHADER_EMISSIVE_STRENGTH;
-    public static final ModConfigSpec.DoubleValue VEGETATION_STRENGTH, VEGETATION_MAX_HEIGHT;
-    public static final ModConfigSpec.DoubleValue SPAWN_RATE, RADIUS, BLEND_DISTANCE, MIN_SIZE, MAX_SIZE;
-    public static final ModConfigSpec.DoubleValue MIN_ALPHA, MAX_ALPHA, MIN_BLINK_HZ, MAX_BLINK_HZ, SPEED;
-    public static final ModConfigSpec.DoubleValue MIN_GLOW;
-    public static final ModConfigSpec.IntValue MAX_PARTICLES, START, RISE, PEAK, FALL, MIN_LIFETIME, MAX_LIFETIME, LIGHT;
+    public final ModConfigSpec.BooleanValue ENABLED, AUTUMN_ONLY;
+    public final ModConfigSpec.BooleanValue SHADER_WAVES, VEGETATION_WAVES;
+    public final ModConfigSpec.BooleanValue SHADER_EMISSIVE;
+    public final ModConfigSpec.DoubleValue SHADER_EMISSIVE_STRENGTH;
+    public final ModConfigSpec.DoubleValue VEGETATION_STRENGTH, VEGETATION_MAX_HEIGHT;
+    public final ModConfigSpec.DoubleValue SPAWN_RATE, RADIUS, BLEND_DISTANCE, MIN_SIZE, MAX_SIZE;
+    public final ModConfigSpec.DoubleValue MIN_ALPHA, MAX_ALPHA, MIN_BLINK_HZ, MAX_BLINK_HZ, SPEED;
+    public final ModConfigSpec.DoubleValue MIN_GLOW;
+    public final ModConfigSpec.IntValue MAX_PARTICLES, START, RISE, PEAK, FALL, MIN_LIFETIME, MAX_LIFETIME, LIGHT;
 
-    static {
-        var b = new ModConfigSpec.Builder();
+    public SeaFireClientConfig(ModConfigSpec.Builder b) {
         b.comment("Client-side Sea Fire particles. Durations use game ticks (20 ticks/second). Appearance changes affect new particles.").push("seaFire");
         ENABLED = b.comment("Enable natural Sea Fire spawning.").define("enabled", true);
         SPAWN_RATE = number(b, "candidateSpawnsPerSecond", 4000, 0, 12000,
@@ -61,7 +58,6 @@ public final class SeaFireClientConfig {
         AUTUMN_ONLY = b.comment("When Ecliptic Seasons is installed, restrict natural spawning to the six autumn solar terms. Ignored without that mod.")
                 .define("autumnOnly", false);
         b.pop().pop();
-        SPEC = b.build();
     }
 
     private static ModConfigSpec.DoubleValue number(ModConfigSpec.Builder b, String key, double value, double min, double max, String comment) {
@@ -72,5 +68,4 @@ public final class SeaFireClientConfig {
         return b.comment(comment).defineInRange(key, value, min, max);
     }
 
-    private SeaFireClientConfig() { }
 }

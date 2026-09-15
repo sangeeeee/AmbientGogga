@@ -8,6 +8,7 @@ import com.sange.ambientgogga.entity.ai.ButterflyRestGoal;
 import com.sange.ambientgogga.entity.ai.ButterflyWanderGoal;
 import com.sange.ambientgogga.item.ButterflyBottleItem;
 import com.sange.ambientgogga.world.ModTags;
+import com.sange.ambientgogga.world.ButterflySeasons;
 import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -125,6 +126,8 @@ public class Butterfly extends PathfinderMob implements FlyingAnimal {
             BlockPos pos,
             RandomSource random
     ) {
+        if ((spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION)
+                && !ButterflySeasons.allowsNaturalSpawn(level.getLevel())) return false;
         Holder<Biome> biome = level.getBiome(pos);
         boolean validBiome = biome.is(ModTags.BUTTERFLY_SPAWN_BIOMES)
                 && biome.is(Tags.Biomes.IS_OVERWORLD)

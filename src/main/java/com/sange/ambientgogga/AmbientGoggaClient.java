@@ -1,9 +1,9 @@
 package com.sange.ambientgogga;
 
 import com.sange.ambientgogga.client.model.ButterflyModel;
-import com.sange.ambientgogga.client.ShichieichouClientConfig;
-import com.sange.ambientgogga.client.FireflyClientConfig;
-import com.sange.ambientgogga.client.SeaFireClientConfig;
+import com.sange.ambientgogga.config.ClientConfig;
+import com.sange.ambientgogga.config.ConfigMigration;
+import net.neoforged.fml.loading.FMLPaths;
 import com.sange.ambientgogga.client.particle.SeaFireParticle;
 import com.sange.ambientgogga.client.particle.FireflyParticle;
 import com.sange.ambientgogga.client.particle.ShichieichouTrailParticle;
@@ -22,9 +22,8 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 @Mod(value = AmbientGogga.MODID, dist = Dist.CLIENT)
 public class AmbientGoggaClient {
     public AmbientGoggaClient(IEventBus modEventBus, ModContainer container) {
-        container.registerConfig(ModConfig.Type.CLIENT, ShichieichouClientConfig.SPEC);
-        container.registerConfig(ModConfig.Type.CLIENT, FireflyClientConfig.SPEC, FireflyClientConfig.FILE_NAME);
-        container.registerConfig(ModConfig.Type.CLIENT, SeaFireClientConfig.SPEC, SeaFireClientConfig.FILE_NAME);
+        ConfigMigration.client(FMLPaths.CONFIGDIR.get());
+        container.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC, ClientConfig.FILE_NAME);
         modEventBus.addListener(AmbientGoggaClient::registerParticleProviders);
         modEventBus.addListener(AmbientGoggaClient::registerEntityRenderers);
         modEventBus.addListener(AmbientGoggaClient::registerLayerDefinitions);

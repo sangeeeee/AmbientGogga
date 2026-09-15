@@ -1,0 +1,7 @@
+#Butterfly natural spawning. In multiplayer, the server's configuration controls spawning.
+[butterflies]
+    #ALL_YEAR allows spawning in all seasons. NON_WINTER blocks the six winter solar terms when Ecliptic Seasons is installed.
+    #Applies only to ordinary butterflies. Shichieichou is unaffected. Ignored without Ecliptic Seasons; an unavailable calendar pauses restricted spawning.
+    #Existing butterflies, commands, spawn eggs and releases from bottles are unaffected.
+    #Allowed Values: ALL_YEAR, NON_WINTER
+    spawnSeason = "ALL_YEAR"

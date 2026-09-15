@@ -1,7 +1,9 @@
 package com.sange.ambientgogga.client;
 
+import com.sange.ambientgogga.config.ClientConfig;
+
 import com.sange.ambientgogga.AmbientGogga;
-import com.sange.ambientgogga.client.compat.EclipticSeasonsCompat;
+import com.sange.ambientgogga.compat.EclipticSeasonsCompat;
 import com.sange.ambientgogga.client.compat.SeaFireShaderCompat;
 import com.sange.ambientgogga.client.particle.SeaFireParticle;
 import com.sange.ambientgogga.particle.ModParticles;
@@ -28,8 +30,8 @@ public final class SeaFireSpawner {
         if (activityLevel == level && activityTick == tick) return cachedActivity;
         activityLevel = level;
         activityTick = tick;
-        cachedActivity = FireflyTiming.nightWeight(level.getDayTime(), SeaFireClientConfig.START.get(),
-                SeaFireClientConfig.RISE.get(), SeaFireClientConfig.PEAK.get(), SeaFireClientConfig.FALL.get());
+        cachedActivity = FireflyTiming.nightWeight(level.getDayTime(), ClientConfig.SEA_FIRE.START.get(),
+                ClientConfig.SEA_FIRE.RISE.get(), ClientConfig.SEA_FIRE.PEAK.get(), ClientConfig.SEA_FIRE.FALL.get());
         return cachedActivity;
     }
 
@@ -47,22 +49,22 @@ public final class SeaFireSpawner {
             SeaFireShaderCompat.reset();
         }
         if (level != null) SeaFireShaderCompat.refresh();
-        if (level == null || mc.player == null || mc.isPaused() || !SeaFireClientConfig.ENABLED.get()) {
+        if (level == null || mc.player == null || mc.isPaused() || !ClientConfig.SEA_FIRE.ENABLED.get()) {
             accumulator = 0;
             return;
         }
         double night = activity(level);
-        boolean restricted = SeaFireClientConfig.AUTUMN_ONLY.get() && EclipticSeasonsCompat.isInstalled();
+        boolean restricted = ClientConfig.SEA_FIRE.AUTUMN_ONLY.get() && EclipticSeasonsCompat.isInstalled();
         if (night <= 0 || restricted && !SeaFireRules.allowsSeason(true, true, EclipticSeasonsCompat.currentTerm(level))) {
             accumulator = 0;
             return;
         }
-        accumulator += SeaFireClientConfig.SPAWN_RATE.get() * night / 20;
+        accumulator += ClientConfig.SEA_FIRE.SPAWN_RATE.get() * night / 20;
         int candidates = (int) accumulator;
         accumulator -= candidates;
         var camera = mc.gameRenderer.getMainCamera().getPosition();
         var random = level.getRandom();
-        double radius = SeaFireClientConfig.RADIUS.get();
+        double radius = ClientConfig.SEA_FIRE.RADIUS.get();
         SeaFireBeachField.Source beachWater = (x, y, z) -> {
             if (!level.hasChunk(x >> 4, z >> 4)) return false;
             var pos = new BlockPos(x, y, z);
@@ -78,7 +80,7 @@ public final class SeaFireSpawner {
             if (pos == null || Math.abs(camera.y - pos.getY()) > 24) continue;
             // Rejected density samples are consumed, never retried, preserving the shoreline gradient.
             if (random.nextDouble() >= field.weight(beachWater, SeaFireSurface.isBeach(level, pos),
-                    pos.getY(), x, z, SeaFireClientConfig.BLEND_DISTANCE.get(), level.getGameTime())) continue;
+                    pos.getY(), x, z, ClientConfig.SEA_FIRE.BLEND_DISTANCE.get(), level.getGameTime())) continue;
             level.addParticle(ModParticles.SEA_FIRE.get(), x, SeaFireSurface.height(level, pos), z, 0, 0, 0);
         }
     }

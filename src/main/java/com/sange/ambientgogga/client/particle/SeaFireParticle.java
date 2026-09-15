@@ -2,7 +2,7 @@ package com.sange.ambientgogga.client.particle;
 
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.sange.ambientgogga.client.SeaFireCurves;
-import com.sange.ambientgogga.client.SeaFireClientConfig;
+import com.sange.ambientgogga.config.ClientConfig;
 import com.sange.ambientgogga.client.SeaFireEmission;
 import com.sange.ambientgogga.client.SeaFireGeometry;
 import com.sange.ambientgogga.client.SeaFireSpawner;
@@ -39,24 +39,24 @@ public final class SeaFireParticle extends TextureSheetParticle {
             LIVE.clear();
             trackedLevel = new WeakReference<>(level);
         }
-        return LIVE.size() < SeaFireClientConfig.MAX_PARTICLES.get();
+        return LIVE.size() < ClientConfig.SEA_FIRE.MAX_PARTICLES.get();
     }
 
     private SeaFireParticle(ClientLevel level, double x, double y, double z, SpriteSet sprites) {
         super(level, x, y, z);
         waterY = Mth.floor(y - 0.01);
-        int a = SeaFireClientConfig.MIN_LIFETIME.get(), b = SeaFireClientConfig.MAX_LIFETIME.get();
+        int a = ClientConfig.SEA_FIRE.MIN_LIFETIME.get(), b = ClientConfig.SEA_FIRE.MAX_LIFETIME.get();
         lifetime = Math.min(a, b) + random.nextInt(Math.abs(b - a) + 1);
-        double small = Math.min(SeaFireClientConfig.MIN_SIZE.get(), SeaFireClientConfig.MAX_SIZE.get());
-        double large = Math.max(SeaFireClientConfig.MIN_SIZE.get(), SeaFireClientConfig.MAX_SIZE.get());
+        double small = Math.min(ClientConfig.SEA_FIRE.MIN_SIZE.get(), ClientConfig.SEA_FIRE.MAX_SIZE.get());
+        double large = Math.max(ClientConfig.SEA_FIRE.MIN_SIZE.get(), ClientConfig.SEA_FIRE.MAX_SIZE.get());
         double sizeSample = random.nextDouble();
         quadSize = (float) (small + sizeSample * sizeSample * (large - small));
-        peakAlpha = between(SeaFireClientConfig.MIN_ALPHA.get(), SeaFireClientConfig.MAX_ALPHA.get());
-        blinkStep = between(SeaFireClientConfig.MIN_BLINK_HZ.get(), SeaFireClientConfig.MAX_BLINK_HZ.get())
+        peakAlpha = between(ClientConfig.SEA_FIRE.MIN_ALPHA.get(), ClientConfig.SEA_FIRE.MAX_ALPHA.get());
+        blinkStep = between(ClientConfig.SEA_FIRE.MIN_BLINK_HZ.get(), ClientConfig.SEA_FIRE.MAX_BLINK_HZ.get())
                 * SeaFireCurves.STEPS / 20;
-        minimumGlow = SeaFireClientConfig.MIN_GLOW.get();
-        minimumLight = SeaFireClientConfig.LIGHT.get();
-        double speed = SeaFireClientConfig.SPEED.get() * between(0.4, 1);
+        minimumGlow = ClientConfig.SEA_FIRE.MIN_GLOW.get();
+        minimumLight = ClientConfig.SEA_FIRE.LIGHT.get();
+        double speed = ClientConfig.SEA_FIRE.SPEED.get() * between(0.4, 1);
         blinkPhase = random.nextDouble() * SeaFireCurves.STEPS;
         double rotation = random.nextDouble() * Math.PI * 2;
         driftCos = Math.cos(rotation) * speed;
@@ -179,7 +179,7 @@ public final class SeaFireParticle extends TextureSheetParticle {
                                        double vx, double vy, double vz) {
             if (!hasCapacity(level)) return null;
             var pos = SeaFireSurface.find(level, Mth.floor(x), Mth.floor(z));
-            double size = Math.max(SeaFireClientConfig.MIN_SIZE.get(), SeaFireClientConfig.MAX_SIZE.get());
+            double size = Math.max(ClientConfig.SEA_FIRE.MIN_SIZE.get(), ClientConfig.SEA_FIRE.MAX_SIZE.get());
             if (pos == null || Math.abs(y - SeaFireSurface.height(level, pos)) > 1 || !fits(level, x, pos.getY(), z, size)) return null;
             return new SeaFireParticle(level, x, SeaFireSurface.height(level, pos), z, sprites);
         }

@@ -4,14 +4,12 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 
 /** Local visual controls for different shader packs. */
 public final class ShichieichouClientConfig {
-    public static final ModConfigSpec SPEC;
-    public static final ModConfigSpec.IntValue MINIMUM_LIGHT;
-    public static final ModConfigSpec.DoubleValue DUST_SIZE;
-    public static final ModConfigSpec.IntValue DUST_PER_TICK;
-    public static final ModConfigSpec.DoubleValue DUST_DENSITY;
+    public final ModConfigSpec.IntValue MINIMUM_LIGHT;
+    public final ModConfigSpec.DoubleValue DUST_SIZE;
+    public final ModConfigSpec.IntValue DUST_PER_TICK;
+    public final ModConfigSpec.DoubleValue DUST_DENSITY;
 
-    static {
-        ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
+    public ShichieichouClientConfig(ModConfigSpec.Builder builder) {
         builder.push("shichieichou");
         MINIMUM_LIGHT = builder.comment("Minimum local light on the butterfly (0-15). Lower this if your shader pack blooms too strongly.")
                 .defineInRange("minimumLight", 15, 0, 15);
@@ -22,9 +20,6 @@ public final class ShichieichouClientConfig {
         DUST_DENSITY = builder.comment("Probability of emitting each dust candidate while flying or hovering; 1 keeps all, 0 disables the trail.")
                 .defineInRange("dustDensity", 1.0D / 3.0D, 0.0D, 1.0D);
         builder.pop();
-        SPEC = builder.build();
     }
 
-    private ShichieichouClientConfig() {
-    }
 }

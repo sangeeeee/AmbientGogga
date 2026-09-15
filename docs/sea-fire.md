@@ -23,7 +23,7 @@
 
 ## 配置
 
-游戏目录下的 `config/ambientgogga-sea-fire-client.toml` 会自动生成，所有注释为英文。仓库 `config/` 有默认样例；开发客户端使用 `run/config/` 的同名文件。
+游戏目录下的 `config/ambientgogga-client.toml` 会自动生成，所有注释为英文。仓库 `config/` 有默认样例；开发客户端使用 `run/config/` 的同名文件。
 
 | 参数 | 默认值 | 用途 |
 | --- | --- | --- |

@@ -1,5 +1,6 @@
 {
   "ambientgogga.configuration.fireflySeason": "萤火虫时节",
+  "ambientgogga.configuration.butterflySeason": "蝴蝶生成季节",
   "item.ambientgogga.butterfly_spawn_egg": "蝴蝶刷怪蛋",
   "item.ambientgogga.butterfly_bottle": "蝴蝶瓶",
   "item.ambientgogga.butterfly_bottle.count": "蝴蝶：%s/%s",

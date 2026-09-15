@@ -43,7 +43,7 @@ repositories {
 }
 
 base {
-    archivesName = mod_id
+    archivesName = "${mod_id}-neoforge"
 }
 
 // Mojang ships Java 21 to end users in 1.21.1, so mods should target Java 21.
@@ -240,12 +240,34 @@ tasks.register('verifyFireflyConfig', JavaExec) {
     dependsOn tasks.named('clientConfigTestClasses')
     classpath = sourceSets.clientConfigTest.runtimeClasspath
     mainClass = 'com.sange.ambientgogga.client.FireflyConfigTest'
-    args layout.buildDirectory.file('verification/ambientgogga-fireflies-client.toml').get().asFile.absolutePath
+    args layout.buildDirectory.file('verification/ambientgogga-client.toml').get().asFile.absolutePath
     workingDir layout.buildDirectory.dir('verification')
     doFirst { workingDir.mkdirs() }
 }
 
 tasks.named('check') { dependsOn tasks.named('verifyFireflyConfig') }
+
+tasks.register('verifyButterflySeasons', JavaExec) {
+    dependsOn tasks.named('clientConfigTestClasses')
+    classpath = sourceSets.clientConfigTest.runtimeClasspath
+    mainClass = 'com.sange.ambientgogga.world.ButterflySeasonConfigTest'
+    args file('config/ambientgogga-server.toml').absolutePath
+}
+
+tasks.named('check') { dependsOn tasks.named('verifyButterflySeasons') }
+
+tasks.register('verifyConfigMigration', JavaExec) {
+    dependsOn tasks.named('clientConfigTestClasses')
+    classpath = sourceSets.clientConfigTest.runtimeClasspath
+    mainClass = 'com.sange.ambientgogga.config.ConfigMigrationTest'
+    args layout.buildDirectory.dir('verification').get().asFile.absolutePath,
+            file('config/ambientgogga-client.toml').absolutePath,
+            file('config/ambientgogga-server.toml').absolutePath
+    workingDir layout.buildDirectory.dir('verification')
+    doFirst { workingDir.mkdirs() }
+}
+
+tasks.named('check') { dependsOn tasks.named('verifyConfigMigration') }
 
 tasks.register('verifySeaFireRules', JavaExec) {
     dependsOn tasks.named('animationTestClasses')
@@ -257,7 +279,7 @@ tasks.register('verifySeaFireConfig', JavaExec) {
     dependsOn tasks.named('clientConfigTestClasses')
     classpath = sourceSets.clientConfigTest.runtimeClasspath
     mainClass = 'com.sange.ambientgogga.client.SeaFireConfigTest'
-    args layout.buildDirectory.file('verification/ambientgogga-sea-fire-client.toml').get().asFile.absolutePath
+    args layout.buildDirectory.file('verification/sea-fire/ambientgogga-client.toml').get().asFile.absolutePath
     workingDir layout.buildDirectory.dir('verification/sea-fire')
     doFirst { workingDir.mkdirs() }
 }

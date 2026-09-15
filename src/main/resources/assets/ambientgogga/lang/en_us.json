@@ -1,5 +1,6 @@
 {
   "ambientgogga.configuration.fireflySeason": "Firefly season",
+  "ambientgogga.configuration.butterflySeason": "Butterfly spawning season",
   "item.ambientgogga.butterfly_spawn_egg": "Butterfly Spawn Egg",
   "item.ambientgogga.butterfly_bottle": "Butterfly Bottle",
   "item.ambientgogga.butterfly_bottle.count": "Butterflies: %s/%s",

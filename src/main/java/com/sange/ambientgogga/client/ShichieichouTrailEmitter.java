@@ -1,5 +1,7 @@
 package com.sange.ambientgogga.client;
 
+import com.sange.ambientgogga.config.ClientConfig;
+
 import com.sange.ambientgogga.entity.Shichieichou;
 import com.sange.ambientgogga.particle.ModParticles;
 import net.minecraft.util.RandomSource;
@@ -11,8 +13,8 @@ public final class ShichieichouTrailEmitter {
     }
 
     public static void emit(Shichieichou butterfly, Vec3 step) {
-        int maximum = ShichieichouClientConfig.DUST_PER_TICK.get();
-        double density = ShichieichouClientConfig.DUST_DENSITY.get();
+        int maximum = ClientConfig.SHICHIEICHOU.DUST_PER_TICK.get();
+        double density = ClientConfig.SHICHIEICHOU.DUST_DENSITY.get();
         double distance = step.length();
         if (maximum == 0 || density == 0 || distance > 1.0D || butterfly.isInvisible() || butterfly.isClientFadeGhost()) {
             return;

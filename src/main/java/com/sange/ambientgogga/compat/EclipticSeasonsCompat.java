@@ -1,4 +1,4 @@
-package com.sange.ambientgogga.client.compat;
+package com.sange.ambientgogga.compat;
 
 import com.mojang.logging.LogUtils;
 import com.teamtea.eclipticseasons.api.EclipticSeasonsApi;
@@ -20,7 +20,7 @@ public final class EclipticSeasonsCompat {
         } catch (LinkageError | RuntimeException error) {
             if (!warned) {
                 warned = true;
-                LogUtils.getLogger().warn("Unable to read Ecliptic Seasons' calendar; seasonal firefly spawning waits for a valid term.", error);
+                LogUtils.getLogger().warn("Unable to read Ecliptic Seasons' calendar; season-restricted spawning waits for a valid term.", error);
             }
             return null;
         }

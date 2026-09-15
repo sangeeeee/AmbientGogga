@@ -1,6 +1,6 @@
 package com.sange.ambientgogga.client.particle;
 
-import com.sange.ambientgogga.client.ShichieichouClientConfig;
+import com.sange.ambientgogga.config.ClientConfig;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
@@ -35,7 +35,7 @@ public final class ShichieichouTrailParticle extends TextureSheetParticle {
         this.zd = velocityZ;
         this.lifetime = 40 + this.random.nextInt(21);
         this.initialSize = (0.010F + this.random.nextFloat() * 0.006F)
-                * ShichieichouClientConfig.DUST_SIZE.get().floatValue();
+                * ClientConfig.SHICHIEICHOU.DUST_SIZE.get().floatValue();
         this.quadSize = this.initialSize;
         this.maximumAlpha = 0.78F + this.random.nextFloat() * 0.17F;
         this.twinklePhase = this.random.nextFloat() * Mth.TWO_PI;

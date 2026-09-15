@@ -3,7 +3,7 @@ package com.sange.ambientgogga.client.compat;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.logging.LogUtils;
 import com.sange.ambientgogga.AmbientGogga;
-import com.sange.ambientgogga.client.SeaFireClientConfig;
+import com.sange.ambientgogga.config.ClientConfig;
 import com.sange.ambientgogga.client.particle.SeaFireParticle;
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -40,8 +40,8 @@ public final class SeaFireVegetationWaves {
         // This stage also fires over empty ocean where no cutout chunk geometry was submitted.
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_ENTITIES) return;
         if (!SeaFireShaderCompat.useVegetation() || !SeaFireParticle.hasLiveParticles()
-                || SeaFireClientConfig.VEGETATION_STRENGTH.get() <= 0
-                || SeaFireClientConfig.VEGETATION_MAX_HEIGHT.get() <= 0) {
+                || ClientConfig.SEA_FIRE.VEGETATION_STRENGTH.get() <= 0
+                || ClientConfig.SEA_FIRE.VEGETATION_MAX_HEIGHT.get() <= 0) {
             release();
             return;
         }
@@ -60,8 +60,8 @@ public final class SeaFireVegetationWaves {
                 failedPipeline = null;
             }
             if (probe != null) {
-                float[] heights = probe.poll(SeaFireClientConfig.VEGETATION_STRENGTH.get().floatValue(),
-                        SeaFireClientConfig.VEGETATION_MAX_HEIGHT.get().floatValue());
+                float[] heights = probe.poll(ClientConfig.SEA_FIRE.VEGETATION_STRENGTH.get().floatValue(),
+                        ClientConfig.SEA_FIRE.VEGETATION_MAX_HEIGHT.get().floatValue());
                 if (heights != null) FIELD.update(pendingX, pendingZ, pendingStep, heights, now);
                 if (probe.pending()) {
                     if (now - submitted > 2_000_000_000L) throw new IllegalStateException("Vertex probe result expired");
@@ -86,7 +86,7 @@ public final class SeaFireVegetationWaves {
             var mc = Minecraft.getInstance();
             if (mc.level == null) return;
             var eye = event.getCamera().getPosition();
-            pendingStep = Math.max(4, Math.ceil(SeaFireClientConfig.RADIUS.get() / 7));
+            pendingStep = Math.max(4, Math.ceil(ClientConfig.SEA_FIRE.RADIUS.get() / 7));
             pendingX = Math.floor(eye.x / pendingStep) * pendingStep - 8 * pendingStep;
             pendingZ = Math.floor(eye.z / pendingStep) * pendingStep - 8 * pendingStep;
             for (int row = 0; row < SeaFireWaveField.SIDE; row++) {

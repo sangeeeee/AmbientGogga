@@ -1,7 +1,9 @@
 package com.sange.ambientgogga.client;
 
+import com.sange.ambientgogga.config.ClientConfig;
+
 import com.sange.ambientgogga.AmbientGogga;
-import com.sange.ambientgogga.client.compat.EclipticSeasonsCompat;
+import com.sange.ambientgogga.compat.EclipticSeasonsCompat;
 import com.sange.ambientgogga.particle.ModParticles;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -42,8 +44,8 @@ public final class FireflySpawner {
         }
 
         double spawnsPerSecond = getSpawnsPerSecond(level);
-        if (!FireflyClientConfig.ENABLED.get() || spawnsPerSecond <= 0.0 || !isClearWeather(level)
-                || !isFireflyHabitat(level, player) || !isAllowedSeason(level)) {
+        if (!ClientConfig.FIREFLIES.ENABLED.get() || spawnsPerSecond <= 0.0 || !isClearWeather(level)
+                || !isAllowedSeason(level)) {
             spawnAccumulator = 0.0;
             return;
         }
@@ -55,31 +57,33 @@ public final class FireflySpawner {
         int count = (int) spawnAccumulator;
         spawnAccumulator -= count;
         RandomSource random = level.getRandom();
+        int locationAttempts = ClientConfig.FIREFLIES.LOCATION_ATTEMPTS.get();
+        // Bounded candidate sampling also discovers nearby habitats across biome boundaries.
         for (int particle = 0; particle < count; particle++) {
-            for (int attempt = 0; attempt < FireflyClientConfig.LOCATION_ATTEMPTS.get(); attempt++) {
+            for (int attempt = 0; attempt < locationAttempts; attempt++) {
                 if (trySpawnFirefly(level, player, random)) break;
             }
         }
     }
 
     private static double getSpawnsPerSecond(ClientLevel level) {
-        return FireflyClientConfig.SPAWNS_PER_SECOND.get() * FireflyTiming.nightWeight(level.getDayTime(),
-                FireflyClientConfig.NIGHT_START.get(), FireflyClientConfig.RISE_TICKS.get(),
-                FireflyClientConfig.PLATEAU_TICKS.get(), FireflyClientConfig.FALL_TICKS.get());
+        return ClientConfig.FIREFLIES.SPAWNS_PER_SECOND.get() * FireflyTiming.nightWeight(level.getDayTime(),
+                ClientConfig.FIREFLIES.NIGHT_START.get(), ClientConfig.FIREFLIES.RISE_TICKS.get(),
+                ClientConfig.FIREFLIES.PLATEAU_TICKS.get(), ClientConfig.FIREFLIES.FALL_TICKS.get());
     }
 
     private static boolean isAllowedSeason(ClientLevel level) {
-        FireflySeasonMode mode = FireflyClientConfig.SEASON.get();
+        FireflySeasonMode mode = ClientConfig.FIREFLIES.SEASON.get();
         if (mode == FireflySeasonMode.ALL_YEAR || !EclipticSeasonsCompat.isInstalled()) return true;
-        return mode.allows(true, EclipticSeasonsCompat.currentTerm(level), FireflyClientConfig.REALISTIC_TERMS.get());
+        return mode.allows(true, EclipticSeasonsCompat.currentTerm(level), ClientConfig.FIREFLIES.REALISTIC_TERMS.get());
     }
 
     private static boolean isClearWeather(ClientLevel level) {
         return !level.isRaining() && !level.isThundering();
     }
 
-    private static boolean isFireflyHabitat(ClientLevel level, LocalPlayer player) {
-        Holder<Biome> biome = level.getBiome(player.blockPosition());
+    private static boolean isFireflyHabitat(ClientLevel level, BlockPos spawnPos) {
+        Holder<Biome> biome = level.getBiome(spawnPos);
         boolean isForestOrPlains = biome.is(Tags.Biomes.IS_FOREST)
                 || biome.is(Tags.Biomes.IS_PLAINS);
         boolean isSnowCovered = biome.is(Tags.Biomes.IS_SNOWY)
@@ -89,8 +93,8 @@ public final class FireflySpawner {
 
     private static boolean trySpawnFirefly(ClientLevel level, LocalPlayer player, RandomSource random) {
         double angle = random.nextDouble() * Mth.TWO_PI;
-        double minDistance = Math.min(FireflyClientConfig.MIN_DISTANCE.get(), FireflyClientConfig.MAX_DISTANCE.get());
-        double maxDistance = Math.max(FireflyClientConfig.MIN_DISTANCE.get(), FireflyClientConfig.MAX_DISTANCE.get());
+        double minDistance = Math.min(ClientConfig.FIREFLIES.MIN_DISTANCE.get(), ClientConfig.FIREFLIES.MAX_DISTANCE.get());
+        double maxDistance = Math.max(ClientConfig.FIREFLIES.MIN_DISTANCE.get(), ClientConfig.FIREFLIES.MAX_DISTANCE.get());
         double distance = minDistance + random.nextDouble() * (maxDistance - minDistance);
         int x = Mth.floor(player.getX() + Mth.cos((float) angle) * distance);
         int z = Mth.floor(player.getZ() + Mth.sin((float) angle) * distance);
@@ -99,7 +103,7 @@ public final class FireflySpawner {
             return false;
         }
 
-        int verticalRange = FireflyClientConfig.VERTICAL_DISTANCE.get();
+        int verticalRange = ClientConfig.FIREFLIES.VERTICAL_DISTANCE.get();
         int verticalOffset = random.nextInt(verticalRange + 1) - random.nextInt(verticalRange + 1);
         int y = player.getBlockY() + verticalOffset;
         if (y < level.getMinBuildHeight() || y >= level.getMaxBuildHeight()) {
@@ -107,14 +111,6 @@ public final class FireflySpawner {
         }
 
         BlockPos spawnPos = new BlockPos(x, y, z);
-        BlockState spawnState = level.getBlockState(spawnPos);
-        if (!spawnState.getFluidState().isEmpty()
-                || !spawnState.getCollisionShape(level, spawnPos).isEmpty()
-                || !level.canSeeSky(spawnPos)
-                || !hasSolidGroundNearby(level, spawnPos)) {
-            return false;
-        }
-
         double spawnX = spawnPos.getX() + 0.15 + random.nextDouble() * 0.70;
         double spawnY = verticalRange == 0 ? player.getY() : spawnPos.getY() + 0.15 + random.nextDouble() * 0.70;
         double spawnZ = spawnPos.getZ() + 0.15 + random.nextDouble() * 0.70;
@@ -126,13 +122,24 @@ public final class FireflySpawner {
             return false;
         }
 
+        // Check the candidate's three-dimensional biome, never the player's biome.
+        // Reject unsuitable habitats before collision, sky and ground queries.
+        if (!isFireflyHabitat(level, spawnPos)) return false;
+        BlockState spawnState = level.getBlockState(spawnPos);
+        if (!spawnState.getFluidState().isEmpty()
+                || !spawnState.getCollisionShape(level, spawnPos).isEmpty()
+                || !level.canSeeSky(spawnPos)
+                || !hasSolidGroundNearby(level, spawnPos)) {
+            return false;
+        }
+
         level.addParticle(ModParticles.FIREFLY.get(), spawnX, spawnY, spawnZ, 0.0, 0.0, 0.0);
         return true;
     }
 
     private static boolean hasSolidGroundNearby(ClientLevel level, BlockPos spawnPos) {
         BlockPos.MutableBlockPos groundPos = spawnPos.mutable();
-        for (int distance = 1; distance <= FireflyClientConfig.GROUND_DISTANCE.get(); distance++) {
+        for (int distance = 1; distance <= ClientConfig.FIREFLIES.GROUND_DISTANCE.get(); distance++) {
             groundPos.setY(spawnPos.getY() - distance);
             BlockState groundState = level.getBlockState(groundPos);
             if (groundState.getFluidState().isEmpty()

@@ -6,27 +6,24 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 
 /** Local firefly visuals and optional seasonal spawning. All tick durations use 20 ticks/second. */
 public final class FireflyClientConfig {
-    public static final String FILE_NAME = "ambientgogga-fireflies-client.toml";
-    public static final ModConfigSpec SPEC;
-    public static final ModConfigSpec.BooleanValue ENABLED;
-    public static final ModConfigSpec.DoubleValue SPAWNS_PER_SECOND, MIN_DISTANCE, MAX_DISTANCE;
-    public static final ModConfigSpec.IntValue LOCATION_ATTEMPTS, VERTICAL_DISTANCE, GROUND_DISTANCE;
-    public static final ModConfigSpec.IntValue NIGHT_START, RISE_TICKS, PLATEAU_TICKS, FALL_TICKS;
-    public static final ModConfigSpec.DoubleValue MIN_SIZE, MAX_SIZE, MIN_PEAK_ALPHA, MAX_PEAK_ALPHA;
-    public static final ModConfigSpec.DoubleValue MIN_BLINK_HZ, MAX_BLINK_HZ, MIN_GLOW;
-    public static final ModConfigSpec.IntValue MINIMUM_LIGHT, MIN_LIFETIME, MAX_LIFETIME;
-    public static final ModConfigSpec.IntValue MIN_FADE_IN, MAX_FADE_IN, MIN_FADE_OUT, MAX_FADE_OUT;
-    public static final ModConfigSpec.DoubleValue MOTION_SPEED, MOTION_FREQUENCY, STEERING_FACTOR, ROAM_DISTANCE;
-    public static final ModConfigSpec.IntValue MIN_STEERING_TICKS, MAX_STEERING_TICKS;
-    public static final ModConfigSpec.EnumValue<FireflySeasonMode> SEASON;
-    public static final ModConfigSpec.ConfigValue<List<? extends String>> REALISTIC_TERMS;
+    public final ModConfigSpec.BooleanValue ENABLED;
+    public final ModConfigSpec.DoubleValue SPAWNS_PER_SECOND, MIN_DISTANCE, MAX_DISTANCE;
+    public final ModConfigSpec.IntValue LOCATION_ATTEMPTS, VERTICAL_DISTANCE, GROUND_DISTANCE;
+    public final ModConfigSpec.IntValue NIGHT_START, RISE_TICKS, PLATEAU_TICKS, FALL_TICKS;
+    public final ModConfigSpec.DoubleValue MIN_SIZE, MAX_SIZE, MIN_PEAK_ALPHA, MAX_PEAK_ALPHA;
+    public final ModConfigSpec.DoubleValue MIN_BLINK_HZ, MAX_BLINK_HZ, MIN_GLOW;
+    public final ModConfigSpec.IntValue MINIMUM_LIGHT, MIN_LIFETIME, MAX_LIFETIME;
+    public final ModConfigSpec.IntValue MIN_FADE_IN, MAX_FADE_IN, MIN_FADE_OUT, MAX_FADE_OUT;
+    public final ModConfigSpec.DoubleValue MOTION_SPEED, MOTION_FREQUENCY, STEERING_FACTOR, ROAM_DISTANCE;
+    public final ModConfigSpec.IntValue MIN_STEERING_TICKS, MAX_STEERING_TICKS;
+    public final ModConfigSpec.EnumValue<FireflySeasonMode> SEASON;
+    public final ModConfigSpec.ConfigValue<List<? extends String>> REALISTIC_TERMS;
 
-    static {
-        ModConfigSpec.Builder b = new ModConfigSpec.Builder();
+    public FireflyClientConfig(ModConfigSpec.Builder b) {
         b.comment("Client-side firefly settings. Durations use game ticks (20 ticks/second). Appearance settings affect newly spawned particles.").push("fireflies");
         ENABLED = b.comment("Whether fireflies spawn naturally.").define("enabled", true);
         SPAWNS_PER_SECOND = number(b, "maxSpawnsPerSecond", 10, 0, 120, "Maximum spawn attempts per second at the nightly peak; 0 disables spawning.");
-        LOCATION_ATTEMPTS = integer(b, "locationAttempts", 24, 1, 128, "Maximum number of location attempts per particle.");
+        LOCATION_ATTEMPTS = integer(b, "locationAttempts", 24, 1, 128, "Maximum number of location attempts per particle. Each candidate must satisfy biome and terrain rules; the player's biome does not restrict spawning.");
         MIN_DISTANCE = number(b, "minSpawnDistance", 1.5, 0, 128, "Minimum horizontal distance from the player in blocks; reversed bounds are swapped automatically.");
         MAX_DISTANCE = number(b, "maxSpawnDistance", 56, 0, 128, "Maximum horizontal distance from the player in blocks.");
         VERTICAL_DISTANCE = integer(b, "maxVerticalDistance", 30, 0, 128, "Maximum height difference from the player in blocks.");
@@ -70,7 +67,6 @@ public final class FireflyClientConfig {
                 .defineListAllowEmpty("realisticSolarTerms", List.of("greater_heat"),
                         value -> value instanceof String name && FireflySeasonMode.VALID_TERMS.contains(name.toLowerCase(Locale.ROOT)));
         b.pop().pop();
-        SPEC = b.build();
     }
 
     private static ModConfigSpec.IntValue integer(ModConfigSpec.Builder b, String key, int value, int min, int max, String comment) {
@@ -81,5 +77,4 @@ public final class FireflyClientConfig {
         return b.comment(comment).defineInRange(key, value, min, max);
     }
 
-    private FireflyClientConfig() { }
 }
