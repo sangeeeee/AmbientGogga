@@ -1,174 +1,41 @@
-# 海萤火 / Sea Fire
+# Bioluminescence
 
-海萤火是纯客户端环境粒子：细小的蓝色正方形贴着静水表面漂移，大小不一，独立闪烁，随入夜增多、随天亮减少。色彩参考提供的蓝色海岸照片，覆盖深蓝、电蓝与青蓝。没有实体、方块修改或实际动态照明。
+Tiny blue particles drift and shimmer on exposed, still beach water at night. Density rises after sunset, fades toward dawn, and blends gradually into neighboring waters. The glow is visual and does not illuminate blocks.
 
-## 生成位置
+**Install Ambient Gogga on both the server and clients.** These effects render locally, but the mod is not client-only.
 
-已核对 Minecraft 1.21.1 内置的 `minecraft:is_beach` 群系标签，包含：
+## Where to find it
 
-- `minecraft:beach`：沙滩。
-- `minecraft:snowy_beach`：积雪沙滩。
+Visit a beach at night. Unfrozen snowy beaches and modded biomes tagged as beaches also qualify; stony shores do not qualify by default. Flowing, covered, frozen and submerged water is excluded.
 
-`minecraft:stony_shore`（石岸）属于另一类，默认不作为海萤火源区。同时识别 NeoForge 的 `c:is_beach`，兼容正确加入沙滩标签的其他模组群系。
+For a quick check, use `/locate biome minecraft:beach` and `/time set 18000`, then set Minecraft's particle setting to **All**.
 
-只选择露天水面的最上一层水源方块。上方必须是空气，能够直接看到天空；流水、瀑布、含水方块、被冰覆盖的水、屋顶下的水和深层水不符合条件。积雪沙滩中只有尚未结冰的水面可能出现。Minecraft 没有盐度属性，因此以群系和水面状态近似海水；沙滩内人工静水池也可能生成。
+## Configuration
 
-粒子是竖直的正方形，仅绕竖直轴朝向相机，不随俯仰角躺平；底边保持在水面上方 0.002 格以避免深度闪烁。漂移只在同一高度的有效静水表面进行，四角也必须留在水上；遇到岸边或流水就改变方向，水消失或冻结时移除。不会漂到陆地、沉入深水或跳到另一层水面。
+Edit the `[seaFire]` sections in `config/ambientgogga-client.toml`. The internal `seaFire` name is retained for compatibility. Durations use game ticks (20 per second).
 
-## 群系过渡
-
-沙滩水域中的生成权重为 1；相邻水域按到最近沙滩水源方块边缘的水平距离计算平滑下降的权重，默认在 16 格处归零。沙滩边界处权重连续，不做方形分区，也不会把密度判定失败的候选点重新尝试到其他位置。
-
-扩散只参考同一水面高度的沙滩静水，干沙滩不会凭空成为发光源。距离是水平空间距离，不计算绕过陆地的水路连通性，因此很窄的陆地另一侧也可能处于延伸范围。对沙滩水源的缓存约 4–6 秒更新一次，候选位置和已有粒子脚下的水按游戏刻共享检查；同刻复用结果，下一刻失效刷新。只访问已加载区块，不强制加载地形。
-
-## 配置
-
-游戏目录下的 `config/ambientgogga-client.toml` 会自动生成，所有注释为英文。仓库 `config/` 有默认样例；开发客户端使用 `run/config/` 的同名文件。
-
-| 参数 | 默认值 | 用途 |
+| Setting | Default | Purpose |
 | --- | --- | --- |
-| `enabled` | `true` | 自然生成开关 |
-| `candidateSpawnsPerSecond` | `4000` | 高峰时每秒均匀抽取的候选点数；地面、水域、群系渐变会降低实际生成数 |
-| `spawnRadius` | `28` | 相机附近的水平生成半径，单位为格 |
-| `biomeBlendDistance` | `16` | 向相邻水域延伸的距离；0 表示严格限制在沙滩群系 |
-| `maxParticles` | `12000` | 客户端跟踪的海萤火粒子数量上限 |
-| `timing.nightStartTick` | `12500` | 入夜开始出现 |
-| `timing.rampUpTicks` | `3500` | 密度渐增时长 |
-| `timing.peakTicks` | `6000` | 密度高峰时长 |
-| `timing.rampDownTicks` | `2000` | 天亮前密度渐减时长 |
-| `appearance.minSize` / `maxSize` | `0.006` / `0.018` | 方块半边长，随机分布偏向小粒子 |
-| `appearance.minPeakAlpha` / `maxPeakAlpha` | `0.525` / `0.975` | 随机闪烁峰值透明度 |
-| `appearance.minimumLight` | `11` | 粒子自身的最低渲染光照，不照亮方块 |
-| `appearance.minBlinkFrequencyHz` / `maxBlinkFrequencyHz` | `0.08` / `0.16` | 每秒闪烁次数范围，约 6.25–12.5 秒一个周期 |
-| `appearance.minimumGlowFraction` | `0.75` | 闪烁低谷为自身峰值的 75%，出生、消失和天亮淡出另行计算 |
-| `motion.driftSpeed` | `0.0015` | 每刻漂移速度上限，约每秒 0.03 格；0 为静止 |
-| `motion.minLifetimeTicks` / `maxLifetimeTicks` | `80` / `160` | 粒子寿命，约 4–8 秒 |
-| `seasons.autumnOnly` | `false` | 同时安装节气时，是否只在秋季生成 |
+| `enabled` | `true` | Enable natural spawning |
+| `candidateSpawnsPerSecond` | `4000` | Peak candidate rate; actual spawns depend on suitable water |
+| `maxParticles` | `12000` | Particle limit |
+| `spawnRadius` | `28` | Horizontal range in blocks |
+| `biomeBlendDistance` | `16` | Extension into neighboring waters; `0` disables blending |
+| `timing.*` | — | Start time and density ramp durations |
+| `appearance.*` | — | Size, brightness, blinking and shader integration |
+| `motion.*` | — | Drift speed and lifetime |
 
-时间参数单位为游戏刻，正常速度下每秒 20 刻。默认从 12500 刻渐增，16000–22000 刻为高峰，24000 刻归零。已有粒子的亮度也随夜间活动权重降低，避免天亮后仍残留明显亮点。尺寸均值约为陆地萤火虫的三分之一，候选生成量为其默认高峰的 400 倍；实际密度取决于视野内合适水面的占比与粒子上限。
+New particles use updated appearance settings. The configuration file includes comments and allowed ranges.
 
-粒子尊重游戏的粒子数量设置。远处过小的方块可能只占不足一个屏幕像素；可按光影、分辨率调整尺寸、透明度和密度。原版保持原版水面高度；未带专用协议的 Iris 光影可尝试下述植被标记近似漂浮，Eclipse 适配副本则使用专用波浪跟随。
+## Seasons and shaders
 
-## 秋季限制
+To restrict spawning to autumn when **Ecliptic Seasons** is installed:
 
 ```toml
 [seaFire.seasons]
 autumnOnly = true
 ```
 
-启用且同时安装 Ecliptic Seasons 后，仅在游戏节气为立秋、处暑、白露、秋分、寒露、霜降时自然生成。读取的是世界节气，不是电脑日期。不安装节气时忽略此限制；默认全年。日历未同步或维度没有有效节气时，秋季模式暂停新增。跨出秋季后，已有粒子按原寿命淡出。
+The default is all year. Restrictions use the world's solar terms, not your computer's date, and are ignored without Ecliptic Seasons.
 
-复用现有的可选节气兼容接口，继续保持 `compileOnly` 依赖，不自动安装或打包节气模组。
-
-## 验证与手动观察
-
-构建检查包括 641 个岸线距离样本、边界连续性、斜向欧氏距离、0 延伸距离、不同水面高度隔离、缓存失效、24 节气过滤和配置 TOML 往返。成品包含粒子类型、客户端提供器、纹理及配置注册。未启动客户端进行本轮画面或光影实测。
-
-可在沙滩露天静水旁使用 `/time set 18000` 观察高峰效果，游戏粒子设置为“全部”。为便于找位置，可使用 `/locate biome minecraft:beach`。若开启秋季限制，还需当前世界处于上述秋季节气。
-
-本次将海萤火候选生成量与数量上限均提高至此前的五倍；实际可见数量仍受水域面积、群系渐变及游戏粒子设置影响。
-
-## 共享计算优化
-
-生成量仍为每秒 4000 个候选点，上限仍为 12000 粒，寿命、大小、显示范围、独立漂移与闪烁均不改变。
-
-- 水面有效性与高度按方块位置共享，每游戏刻刷新；同格的粒子不再重复读取水、空气和天空状态。邻格边界仍检查所有覆盖格，世界切换/退出时清空缓存。
-- 光照按水格与游戏刻共享，同刻内多帧复用；夜间活动权重每刻只计算一次。
-- 使用容量固定的原始整数键缓存，避免每次命中创建坐标对象；哈希冲突只会引发重新查询，不会串用别的水格。
-- 每个 4×4 查询区共享可能最近的沙滩水格集合，只剔除在整个区域都不可能最近的水格。每个生成点仍计算精确距离，不将密度取整或降低采样数量。
-- 粒子仍各自维护运动和闪烁状态、输出四个顶点；此优化主要减少重复的世界查询与岸线搜索，不承诺降低 GPU 上相同数量粒子的绘制成本。
-
-离线测试模拟 12000 粒在半径 28 格范围内分布，36000 次共享请求需要 3596 次实际取值，减少约 90%。缓存碰撞、换刻失效与清空均有检查；3000 个随机不规则岸线位置与完整逐点距离搜索一致。
-
-同一环境三轮岸线微基准的平均耗时中位数如下，每轮模拟 600 个游戏刻、每刻 200 个候选点：
-
-| 场景 | 优化前（毫秒/刻） | 优化后（毫秒/刻） |
-| --- | --- | --- |
-| 海岸，延伸 16 格 | 0.244 | 0.106 |
-| 无沙滩的海面，延伸 16 格 | 0.245 | 0.030 |
-| 海岸，延伸 64 格 | 2.464 | 0.943 |
-
-测量使用实际岸线算法，但世界查询以简单的模拟岸线回调代替；不包含实际粒子更新、光照查询和 GPU 渲染。区域缓存重建仍有瞬时开销，以上平均值不能换算成实际 FPS 提升。记录位于 `build/performance/sea-fire-before.txt` 与 `sea-fire-after.txt`。
-
-## Iris / Eclipse 水面跟随
-
-参考本地 Better-Foliage 的 Iris 材质标记思路：该项目把水面落樱加入地形几何，并按植被标记交给光影摆动。海萤火继续保留动态粒子路径。专用协议调用水波位移；新增的实验模式则共享采样植被位移，形成近似漂浮。两种模式互斥，植被摇摆不等同于实际水波。
-
-本次针对当前整合包中的 `Eclipse-Shader.zip` 生成了独立适配副本 `Eclipse-Shader-SeaFire.zip`，保留原包的全部资源与原有版权声明，另复制同名 `.txt` 设置。副本已放入当前整合包的 `shaderpacks` 目录；使用更新后的 Ambient Gogga，并在 Iris 中选择这个副本即可。原包与原选择未覆盖。光影包没有打进模组 JAR。
-
-配置 `seaFire.appearance.shaderWaterFollowing = true` 默认开启。Iris 正在使用且光影包带协议标记时优先使用精确协议；其他光影包可进入下面的实验模式。没有 Iris、关闭光影或接口不兼容时，使用原版高度。不需要安装 Better-Foliage 作为依赖。
-
-- 海萤火仍在原始静水坐标上模拟漂移和岸边限制；GPU 仅给显示位置增加水面位移，因此出生密度、数量、速度、寿命与独立闪烁不变。
-- 顶点光照坐标的两个空闲低四位携带标记，适配光影解码后恢复原光照。其他粒子正常走原有路径，未新增逐粒独立绘制。
-- 沿用当前 Eclipse 的噪声纹理、`frameTimeCounter`、波浪速度/强度和距离衰减规则；按水面格子的三角形插值位移，避免另写一套不匹配的起伏。
-- 几何波浪开启时，每个海萤火顶点增加三次噪声采样及少量运算；无需 CPU 波高扫描或 GPU→CPU 数据回读。着色程序不增开单独的逐粒绘制调用。普通细波纹不改变几何时，位移函数返回 0。
-- Java 只在客户端刻检查 Iris 状态，并按两秒间隔检查当前光影包协议文件；不会为每个粒子调用反射或读文件。
-
-你当前保存的 `WATER_WAVE_SPEED` 与 `WATER_WAVE_STRENGTH` 均为 0.7，已原样带入副本。包默认没有开启 `LARGE_WAVE_DISPLACEMENT`，当前细波纹主要影响法线和反光，不产生真实水面高度变化。若在光影设置中开启几何波浪，海萤火会自动随动；不需要人为打开这个选项来完成兼容。
-
-支持当前 Eclipse/Bliss 派生包的常规几何波浪分支，包含 Distant Horizons 对应的距离衰减。Physics Mod 自有海浪、其他光影包的不同公式/剖分方式不在此适配范围内；相关分支保持原版高度，不能声称通用适配所有 Iris 光影。
-
-验证包括普通构建、协议文件/ZIP 识别及无光影回退，以及不可见 OpenGL 上下文中的真实显卡顶点编译：主世界、下界、末地、主世界 DH 分支各自的波浪开关状态，共八种。没有启动 Minecraft；尚未实测整合包画面贴合误差和完整 FPS，额外 GPU 开销不能仅凭编译成功量化。
-
-重新制作副本可运行 `tools/create_eclipse_sea_fire_patch.py`，输入当前 Eclipse ZIP。脚本校验关键水波公式，输出到 `build/compat/`，拒绝覆盖输入包。只修改粒子顶点入口并添加辅助 GLSL 和协议文件；原始水面着色程序与所有其他资源保持逐字节一致。
-
-## 无需修改光影包的实验性近似漂浮
-
-使用原来的光影包即可尝试，不必切换到 `Eclipse-Shader-SeaFire.zip`，也不需要安装 Better-Foliage。更新模组后，客户端配置自动补齐以下选项：
-
-```toml
-[seaFire.appearance]
-shaderWaterFollowing = true
-experimentalVegetationMotion = true
-vegetationMotionStrength = 0.5
-vegetationMaxLift = 0.12
-```
-
-实现从 Iris 当前光影的方块映射中选择小麦、甘蔗或树叶的材质 ID，在私有顶点程序中批量计算“带植被标记”和“无标记”的位置差。程序复用光影已编译的顶点阶段及当前参数，不修改磁盘上的光影文件，也不重新链接光影正在使用的程序。可见粒子继续使用正常的透明粒子渲染，因此原有数量、颜色、亮度、闪烁、淡出和自主漂移保持不变。
-
-每次最多采样 17×17 个位置（578 个成对测试顶点），每秒最多 10 次。GPU 输出约 9 KB；后续帧仅在 fence 已完成时读取，不调用同步等待。粒子通过共享网格的空间、时间插值读取高度，每粒不再单独执行光影公式。无海萤火、关闭光影、世界退出时释放采样资源；切换光影或维度重新建立，结果过期或格式不支持时回退普通水面。渲染状态在采样后恢复。
-
-该模式使用植被的垂直位移幅度，而非水波高度。草本在部分光影中只向下弯曲，直接应用会将海萤火压入水中，因此向下的部分也转换为向上抬升。默认强度为 0.5，最多抬升 0.12 格；水平漂移继续由原有粒子逻辑控制。这不会使粒子严格贴合真实几何波浪。光影关闭植被摆动、仅水平摆动、或没有识别对应标记时，可能没有可见起伏。
-
-目前针对 Iris 1.21.1 的传统顶点接口实现，需要 OpenGL 4.0。活动顶点存储块、统一缓冲区、未支持的属性或 uniform 类型会触发回退；这不是对所有 Iris 版本和光影包的兼容保证。回退原因写入游戏日志中的 `Sea Fire vegetation sampling unavailable`；重载光影后可重试。关闭 `experimentalVegetationMotion` 即可只保留专用协议；关闭 `shaderWaterFollowing` 则停用两种跟随。
-
-验证通过普通构建、配置检查，以及隐藏 OpenGL 窗口下的材质识别、透视投影还原、原程序隔离、异常拒绝和共享网格连续性测试。还读取原始 Eclipse ZIP 的地形顶点程序，使用测试用顶点输入转换验证其实际公式产生非零起伏。此测试不等于在 Minecraft 内运行完整 Iris；尚未实测整合包画面和 FPS。合成测试的提交耗时不包含 Iris 激活、状态保护和整包渲染成本，不能据此承诺具体帧率。
-
-## Iris 原生自发光通道
-
-`seaFire.appearance.shaderEmissive = true` 默认开启。在 Iris 启用光影且没有优先使用专用水波协议时，海萤火改用 Iris 的 `SPS` 顶点格式变体，进入光影的 `gbuffers_spidereyes` 自发光程序。原始 Eclipse 已实现此程序，因此无需修改光影 ZIP；最终亮度和光晕受它的 `Emissive_Brightness`、原版自发光开关及后期处理影响。这是原生自发光程序，不是 `_s` 贴图的 PBR 发光参数，也不向世界添加照明光源。
-
-全部海萤火仍合并为一个批次，保留粒子引擎的剔除和生命周期。前向发光光影在透明阶段绘制；Photon 的材质缓冲路径在不透明粒子阶段绘制。采用紧凑的位置、纹理、颜色格式，不添加实体/地形顶点扩展，不执行逐粒单独绘制，也不增加粒子数量或额外重绘一遍粒子。正常表面检查和漂浮逻辑保留；发光批次跳过无用的逐粒光照读取。没有 Iris、关闭光影或接口不兼容时，切回普通粒子格式。
-
-部分光影的自发光程序忽略顶点透明度，因此闪烁、出生和消失通过 RGB 发光强度传入，并使用共用的 64 KB 颜色表补偿 sRGB 转换。每帧不逐粒计算幂函数。`shaderEmissiveStrength` 默认为 `1.0`，范围 `0–1`，可调低；它只调节此自发光通道，普通粒子的 `minimumLight` 仍按原方式生效。不同光影对颜色和曝光的处理不同，无法保证与原普通粒子完全相同的视觉亮度。
-
-专用 `Eclipse-Shader-SeaFire.zip` 的准确水波协议仍优先，因为该协议位于粒子着色程序中，与原生自发光程序不同。使用原始 `Eclipse-Shader.zip` 可同时获得近似植被漂浮和原生发光；若选专用副本并希望使用原生发光，关闭 `shaderWaterFollowing`，此时不执行水面跟随。
-
-验证通过构建、配置检查，以及隐藏 OpenGL 上下文中的原始 Eclipse 自发光顶点/片元程序链接和浮点目标实际绘制。测试验证发光非零、低谷约为峰值的 75%、完全淡出为零。没有启动 Minecraft；完整 Iris 渲染顺序、实际光晕和整包帧率仍需要游戏中观察。
-
-## Photon 与水下可见性修正
-
-Photon 在 Minecraft 1.21.1 下将 `gbuffers_spidereyes` 接到 `gbuffers_all_solid`，写入材质缓冲，而不是直接输出最终发光颜色。旧实现将它安排在透明粒子阶段并关闭深度写入，光照处理无法正常使用这些粒子。模组现在识别这一 Photon 着色程序结构，在 NeoForge 的不透明粒子阶段提交，启用深度写入并禁用材质数据混合；该阶段在 Iris 的延迟光照处理之前。Photon 仍由自身的自发光材质（编号 32）处理海萤火，无需修改光影 ZIP。识别依据文件内容而非 ZIP 名字，保留原先其他光影的前向路径。
-
-水下不可见与方片的水面位置有关：旧方片整体处于水面上方，后绘制时会被水面深度遮挡。现在从上方观察时，方片仍在水面上方；从下方观察时，将同一方片移到水面内侧，并将近似漂浮位移朝水内应用，保证方片不会被抬到水面另一侧。这只是同一粒子的显示位置调整，不重复绘制、不增加粒子数量，也不禁用深度测试。方块等前景物体仍正常遮挡粒子。正上方或正下方的极端俯仰视角仍可能因竖直方片的投影面积很小而不明显。
-
-验证包括原始 Photon 顶点/片元程序的隐藏 GPU 绘制：复现旧路径缺少粒子深度，确认修正后有深度和正确的自发光材质编号；另外绘制实际水面深度平面，验证旧方片从水下被完全遮挡、新方片可见、前景深度仍能遮挡。位置检查覆盖多种尺寸与漂浮幅度。Eclipse 原生发光、闪烁和淡出检查也继续通过。未启动完整游戏客户端，光影的完整折射、雾效与实际 FPS 尚未实测。
-
-## 预生成轨迹与进一步优化
-
-海萤火现在共享 16 组预生成的平滑漂移方向序列，每组 2048 步。每粒出生时选择不同序列、起始位置、旋转方向和速度，之后每刻通过查表与乘加推进。方向序列每 102.4 秒循环，长于当前允许的最长寿命 60 秒，接缝处也连续。序列生成只发生一次，运动和闪烁表合计约 264 KiB，不为每个粒子保存整条轨迹。
-
-这保留了缓慢、看似随机的独立漂移，具体路径不再与旧算法逐点一致。每刻仍检查当前位置的水面是否有效；下一步覆盖相同水格时复用本刻验证，跨格时仍检查全部覆盖格。遇到岸边就旋转后续轨迹，水被移除、结冰或区块卸载时仍正常移除粒子。不能完全取消世界检查，让客户端仅播放坐标，否则会出现粒子穿岸或悬空。
-
-闪烁也使用共享的 2048 点曲线并线性插值，保留独立频率、相位、峰谷比例、出生/消失淡出与昼夜权重。查表相对于原始闪烁曲线的最大测试误差约 0.000001042。数量上限、候选生成量、大小、寿命和速度配置均未降低，也没有新增用户必须调整的参数。
-
-其他改动：
-
-- 光影波动网格每帧统一完成 289 点时间插值，粒子只做空间插值。
-- 光影探测复用私有顶点布局与结果缓冲，前一轮异步读取完成后才能再次提交；输入上传仍保留缓冲更新方式。幅度或最大抬升为零时不进行无效探测。
-- 完全透明的粒子在查询光照、波高和生成顶点之前退出绘制；保留其正常生命周期。
-- 保留完整的光影状态保护和动态参数复制，避免为了减少驱动调用而破坏其他光影。此处仍可能存在进一步优化空间，需要游戏内性能采样和兼容性验证。
-
-验证覆盖 32768 个漂移步的速度与转向连续性、包括循环接缝的 100000 个闪烁采样、配置范围内的寿命与频率、正负坐标和对角岸边覆盖格、网格移动/过期/重启，以及连续 50 次改变时间参数的 GPU 位移读回。
-
-本机预热后的 12000 粒子计算微基准，七轮中位数约从 0.685 毫秒/刻降至 0.186 毫秒/刻，运动与闪烁计算部分减少约 73%。它不包含世界查询、粒子引擎、渲染和 GPU 开销，不能换算成整包 FPS 提升。可用 `gradlew verifySeaFireCurves -PseaFireCurveBenchmark --offline` 复测。未启动 Minecraft 客户端。
+Iris integration supports native emissive rendering where available; brightness and bloom depend on the shader pack. Experimental floating motion approximates surface movement and does not guarantee exact wave matching. Disable `appearance.experimentalVegetationMotion` if it looks wrong, or `appearance.shaderWaterFollowing` to disable all wave following. Unsupported integrations fall back to ordinary surface particles.
